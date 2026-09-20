@@ -1,4 +1,5 @@
-#include "GlobalInput.h"
+#include <lunapch.h>
+#include <Luna/Core/Input.h>
 
 #include <GLFW/glfw3.h>
 
@@ -6,23 +7,21 @@
 
 namespace Luna {
 
-    Scope<Input> Input::s_Instance = CreateScope<GlobalInput>();
-
-    bool GlobalInput::IsKeyPressedImpl(int keycode)
+    bool Input::IsKeyPressed(int keycode)
     {
         auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
         auto state = glfwGetKey(window, keycode);
         return state == GLFW_PRESS || state == GLFW_REPEAT;
     }
 
-    bool GlobalInput::IsMouseButtonPressedImpl(int button)
+    bool Input::IsMouseButtonPressed(int button)
     {
         auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
         auto state = glfwGetMouseButton(window, button);
         return state == GLFW_PRESS;
     }
 
-    std::pair<float, float> GlobalInput::GetMousePosImpl()
+    std::pair<float, float> Input::GetMousePos()
     {
         auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
         double xpos, ypos;
@@ -30,15 +29,15 @@ namespace Luna {
         return { (float)xpos, (float)ypos };
     }
 
-    float GlobalInput::GetMouseXImpl()
+    float Input::GetMouseX()
     {
-        auto[x, y] = GetMousePosImpl();
+        auto[x, y] = GetMousePos();
         return x;
     }
 
-    float GlobalInput::GetMouseYImpl()
+    float Input::GetMouseY()
     {
-        auto[x, y] = GetMousePosImpl();
+        auto[x, y] = GetMousePos();
         return y;
     }
 

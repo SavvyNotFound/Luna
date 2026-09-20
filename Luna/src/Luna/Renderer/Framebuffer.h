@@ -16,6 +16,8 @@ namespace Luna {
     class Framebuffer
     {
         public:
+            virtual ~Framebuffer() = default;
+
             virtual const uint32_t GetRendererID() const = 0;
             virtual const FrameBufferSpecification& GetSpecification() const = 0;
 
