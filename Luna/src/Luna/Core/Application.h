@@ -27,6 +27,9 @@ namespace Luna {
             void PopLayer(Layer* layer);
             void PopOverlay(Layer* layer);
 
+            ImGuiLayer* GetImGuiLayer() { return m_ImGuiLayer; }
+            const ImGuiLayer* GetImGuiLayer() const { return m_ImGuiLayer; }
+
             inline static Application& Get() { return *s_Instance; }
             inline Window& GetWindow() { return *m_Window; }
         private:

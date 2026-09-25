@@ -41,7 +41,8 @@ namespace Luna {
 
         // -- Update --
         m_FrameTime = ts;
-        m_CameraController.OnUpdate(ts);
+        if (m_ViewportFocused)
+            m_CameraController.OnUpdate(ts);
 
         Renderer2D::ResetStats();
         // -- Render --
@@ -141,6 +142,11 @@ namespace Luna {
         // -- Scene Viewport --
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
         ImGui::Begin("Scene Viewport");
+
+        m_ViewportFocused = ImGui::IsWindowFocused();
+        m_ViewportHovered = ImGui::IsWindowHovered();
+        Application::Get().GetImGuiLayer()->BlockEvents(m_ViewportFocused && m_ViewportHovered);
+
         uint32_t sceneID = m_Framebuffer->GetColorAttachmentRendererID();
 
         ImVec2 sceneViewerPanelSize = ImGui::GetContentRegionAvail();
