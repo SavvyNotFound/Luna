@@ -5,6 +5,8 @@
 
 namespace Luna {
 
+    static const uint32_t s_MaxFrameBufferSize = 16384;
+
     OpenGLFramebuffer::OpenGLFramebuffer(const FrameBufferSpecification& spec)
         : m_FrameBufferSpecification(spec)
     {
@@ -72,9 +74,17 @@ namespace Luna {
 
     void OpenGLFramebuffer::Resize(uint32_t width, uint32_t height)
     {
-        m_FrameBufferSpecification.Width = width;
-        m_FrameBufferSpecification.Height = height;
-        Invalidate();
+        if (width == 0 || height == 0 || width > s_MaxFrameBufferSize || height > s_MaxFrameBufferSize)
+        {
+            LUNA_CORE_WARN("Attempted to resize framebuffer to ({1}:{2})", width, height);
+            return;
+        }
+        else
+        {
+            m_FrameBufferSpecification.Width = width;
+            m_FrameBufferSpecification.Height = height;
+            Invalidate();
+        }
     }
 
     void OpenGLFramebuffer::Bind() const

@@ -150,7 +150,7 @@ namespace Luna {
         uint32_t sceneID = m_Framebuffer->GetColorAttachmentRendererID();
 
         ImVec2 sceneViewerPanelSize = ImGui::GetContentRegionAvail();
-        if (m_ViewportSize != *((glm::vec2*) & sceneViewerPanelSize))
+        if (m_ViewportSize != *((glm::vec2*)&sceneViewerPanelSize) && m_ViewportSize.x > 0 && m_ViewportSize.y > 0)
         {
             if (m_ViewportSize.x > 0 && m_ViewportSize.y > 0)
                 m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
