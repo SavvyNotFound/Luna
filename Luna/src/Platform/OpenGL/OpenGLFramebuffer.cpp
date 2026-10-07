@@ -76,7 +76,7 @@ namespace Luna {
     {
         if (width == 0 || height == 0 || width > s_MaxFrameBufferSize || height > s_MaxFrameBufferSize)
         {
-            LUNA_CORE_WARN("Attempted to resize framebuffer to ({1}:{2})", width, height);
+            LUNA_CORE_WARN("Attempted to resize framebuffer to ({0}:{1})", width, height);
             return;
         }
         else
