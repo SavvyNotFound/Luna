@@ -15,7 +15,6 @@ namespace Luna {
     {
         LUNA_PROFILE_FUNCTION();
 
-        Renderer2D::Init();
         m_LunaLogo = Texture2D::Create("Assets/Texture/LunaLogo.png");
         m_Texture = Texture2D::Create("Assets/Texture/RPGpack_sheet.png");
         m_CheckeredTexture = Texture2D::Create("Assets/Texture/Checkerboard.png");
