@@ -19,10 +19,11 @@ namespace Luna {
             bool OnKeyPressed(KeyPressedEvent& e);
         private:
             Ref<Framebuffer> m_Framebuffer;
+
             bool SceneViewFullScr = false;
             bool m_ViewportFocused = false;
             bool m_ViewportHovered = false;
-            glm::vec2 m_ViewportSize = {0.0f, 0.0f};
+            glm::vec2 m_ViewportSize = {1.0f, 1.0f};
 
             Ref<Shader> m_Shader;
             CameraOrthoController m_CameraController;
@@ -33,9 +34,9 @@ namespace Luna {
 
             Ref<SubTexture2D> m_StairLTR;
 
-            glm::vec4 m_QuadColor = { 0.2f, 0.3f, 0.8f, 1.0f };
-            glm::vec2 m_QuadPos = { 0.0f, 0.0f };
-            glm::vec2 m_QuadSize = { 1.0f, 1.0f };
+            Ref<Scene> m_ActiveScene;
+
+            Entity m_SquareEntity;
             float m_Rotation = 0.0f;
 
             float m_FrameTime = 0.0f;

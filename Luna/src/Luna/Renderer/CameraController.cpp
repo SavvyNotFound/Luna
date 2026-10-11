@@ -51,7 +51,6 @@ namespace Luna {
     {
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<MouseScrolledEvent>(LUNA_BIND_EVENT_FN(CameraOrthoController::OnMouseScrolled));
-        dispatcher.Dispatch<WindowResizeEvent>(LUNA_BIND_EVENT_FN(CameraOrthoController::OnWindowResized));
     }
 
     bool CameraOrthoController::OnMouseScrolled(MouseScrolledEvent& e)
@@ -60,14 +59,6 @@ namespace Luna {
         if (m_ZoomLevel <= 0.1f)
             m_ZoomLevel = 0.05f;
         m_Camera.SetProjection(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel);
-
-        return false;
-    }
-    
-    bool CameraOrthoController::OnWindowResized(WindowResizeEvent& e)
-    {
-
-        Resize((float)e.GetWidth(), (float)e.GetHeight());
 
         return false;
     }

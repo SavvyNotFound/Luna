@@ -18,8 +18,12 @@ namespace Luna {
             static void Flush();
             static void EndScene();
 
-            // Primitives, rotation should come in as radians
+            // Primitives
+
             // Textures
+            static void DrawQuad(const glm::mat4 transform, const Ref<Texture2D>& texture = nullptr, const float tilingFactor = 1.0f);
+            static void DrawQuad(const glm::mat4 transform, const glm::vec4& color, const Ref<Texture2D>& texture = nullptr, const float tilingFactor = 1.0f);
+
             static void DrawQuad(const glm::vec2& position,const glm::vec2& scale, const Ref<Texture2D>& texture = nullptr, const float tilingFactor = 1.0f);
             static void DrawQuad(const glm::vec3& position,const glm::vec2& scale, const Ref<Texture2D>& texture = nullptr, const float tilingFactor = 1.0f);
             static void DrawQuad(const glm::vec2& position,const glm::vec2& scale, const glm::vec4& color, const Ref<Texture2D>& texture = nullptr, const float tilingFactor = 1.0f);
@@ -31,6 +35,9 @@ namespace Luna {
             static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& scale, const float rotation, const glm::vec4& color, const Ref<Texture2D>& texture = nullptr, const float tilingFactor = 1.0f);
 
             // Sub Textures
+            static void DrawQuad(const glm::mat4 transform, const Ref<SubTexture2D>& texture = nullptr, const float tilingFactor = 1.0f);
+            static void DrawQuad(const glm::mat4 transform, const glm::vec4& color, const Ref<SubTexture2D>& texture, const float tilingFactor = 1.0f);
+
             static void DrawQuad(const glm::vec2& position,const glm::vec2& scale, const Ref<SubTexture2D>& texture, const float tilingFactor = 1.0f);
             static void DrawQuad(const glm::vec3& position,const glm::vec2& scale, const Ref<SubTexture2D>& texture, const float tilingFactor = 1.0f);
             static void DrawQuad(const glm::vec2& position,const glm::vec2& scale, const glm::vec4& color, const Ref<SubTexture2D>& texture, const float tilingFactor = 1.0f);

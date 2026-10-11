@@ -25,6 +25,12 @@ namespace Luna {
         fbSpec.Width = 1280;
         fbSpec.Height = 720;
         m_Framebuffer = Framebuffer::Create(fbSpec);
+
+        m_ActiveScene = CreateRef<Scene>();
+
+        Entity square = m_ActiveScene->CreateEntity("Our Glorious Square done thru ECS (EnTT)");
+        square.AddComponent<SpriteRendererComponent>(glm::vec4{0.0f, 1.0f, 0.2f, 1.0f});
+        m_SquareEntity = square;
     }
 
     void EditorLayer::OnDetach()
@@ -51,28 +57,11 @@ namespace Luna {
 
         {
             LUNA_PROFILE_SCOPE("Renderer Draw");
-
             Renderer2D::BeginScene(m_CameraController.GetCamera());
 
-            Renderer2D::DrawRotatedQuad(m_QuadPos, m_QuadSize, m_Rotation, m_QuadColor);
-            Renderer2D::DrawRotatedQuad({-1.0f, 0.0f}, {1.5f, 1.5f}, glm::radians(0.0f), m_LunaLogo);
-            Renderer2D::DrawQuad({0.0f, 0.0f, -1.0f}, {25.0f, 25.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, m_CheckeredTexture, 10.0f);
-            Renderer2D::DrawQuad({-1.0f, -1.0f}, {0.5f, 0.5f}, {0.8f, 0.3f, 0.2f, 1.0f});
+            // Update Scene
+            m_ActiveScene->OnUpdate(ts);
 
-            Renderer2D::DrawQuad({3.0f, 0.0f, 0.1f}, {1.5f, 1.5f}, m_StairLTR);
-
-            Renderer2D::EndScene();
-
-
-            Renderer2D::BeginScene(m_CameraController.GetCamera());
-            for (float y = -5.0f; y < 5.0f; y += 0.5f)
-            {
-                for (float x = -5.0f; x < 5.0f; x += 0.5f)
-                {
-                    glm::vec4 color = {(x + 5.0f)/ 10.0f, 0.4f, (y + 5.0f) / 10.0f, 0.7f};
-                    Renderer2D::DrawQuad({x, y}, {0.45f, 0.45f}, color);
-                }
-            }
             Renderer2D::EndScene();
         }
         m_Framebuffer->Unbind();
@@ -146,19 +135,16 @@ namespace Luna {
         m_ViewportHovered = ImGui::IsWindowHovered();
         Application::Get().GetImGuiLayer()->BlockEvents(m_ViewportFocused && m_ViewportHovered);
 
-        uint32_t sceneID = m_Framebuffer->GetColorAttachmentRendererID();
-
         ImVec2 sceneViewerPanelSize = ImGui::GetContentRegionAvail();
-        if (m_ViewportSize != *((glm::vec2*)&sceneViewerPanelSize) && m_ViewportSize.x > 0 && m_ViewportSize.y > 0)
+        if (m_ViewportSize != glm::vec2{sceneViewerPanelSize.x, sceneViewerPanelSize.y} && sceneViewerPanelSize.x > 0 && sceneViewerPanelSize.y > 0)
         {
-            if (m_ViewportSize.x > 0 && m_ViewportSize.y > 0)
-                m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+            m_Framebuffer->Resize((uint32_t)sceneViewerPanelSize.x, (uint32_t)sceneViewerPanelSize.y);
             m_ViewportSize = {sceneViewerPanelSize.x, sceneViewerPanelSize.y};
-
-            m_CameraController.Resize(sceneViewerPanelSize.x, sceneViewerPanelSize.y);
+            m_CameraController.Resize(m_ViewportSize.x, m_ViewportSize.y);
         }
 
-        ImGui::Image(static_cast<int>(sceneID), sceneViewerPanelSize, ImVec2(0, 1), ImVec2(1, 0));
+        uint32_t sceneID = m_Framebuffer->GetColorAttachmentRendererID();
+        ImGui::Image(static_cast<int>(sceneID), ImVec2(m_ViewportSize.x, m_ViewportSize.y), ImVec2(0, 1), ImVec2(1, 0));
         ImGui::End();
         ImGui::PopStyleVar();
 
@@ -176,11 +162,19 @@ namespace Luna {
             ImGui::Text("Index count: %u", stats.GetTotalIndexCount());
             ImGui::End();
 
-            ImGui::Begin("Properties");
-            ImGui::DragFloat("Quad Rotation", &m_Rotation, 0.1f);
-            ImGui::DragFloat2("Quad Pos", glm::value_ptr(m_QuadPos), 0.1f);
-            ImGui::DragFloat2("Quad Scale", glm::value_ptr(m_QuadSize), 0.1f);
-            ImGui::ColorEdit4("Quad Color", glm::value_ptr(m_QuadColor));
+            ImGui::Begin("Inspector");
+
+            if (m_SquareEntity)
+            {
+                ImGui::Separator();
+                std::string tag = m_SquareEntity.GetComponent<TagComponent>().Tag;
+                ImGui::Text("%s", tag.c_str());
+
+                auto& squareColor = m_SquareEntity.GetComponent<SpriteRendererComponent>().Color;
+                ImGui::ColorEdit4("Quad Color", glm::value_ptr(squareColor));
+                ImGui::Separator();
+            }
+
             ImGui::End();
         }
     }
