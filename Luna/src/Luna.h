@@ -30,12 +30,12 @@
 // -- Resources --
 #include <Luna/Renderer/Buffer.h>
 #include <Luna/Renderer/Shader.h>
-#include <Luna/Renderer/Camera.h>
 #include <Luna/Renderer/Texture.h>
 #include <Luna/Renderer/SubTexture.h>
 #include <Luna/Renderer/Framebuffer.h>
 #include <Luna/Renderer/VertexArray.h>
-#include <Luna/Renderer/CameraController.h>
+#include <Luna/Renderer/OrthoCamera.h>
+#include <Luna/Renderer/OrthoCameraController.h>
 // -- Resources --
 // -- Rendering --
 

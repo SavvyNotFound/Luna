@@ -2,6 +2,7 @@
 #include <lunapch.h>
 
 #include <glm/glm.hpp>
+#include <Luna/Renderer/Camera.h>
 
 namespace Luna {
 
@@ -38,6 +39,18 @@ namespace Luna {
         SpriteRendererComponent(const SpriteRendererComponent&) = default;
         SpriteRendererComponent(const glm::vec4& color)
             : Color(color)
+        {}
+    };
+
+    struct CameraComponent
+    {
+        Luna::Camera Camera;
+        bool Primary = true; // TODO: Maybe move this option to scene
+
+        CameraComponent() = default;
+        CameraComponent(const CameraComponent&) = default;
+        CameraComponent(const glm::mat4& projection)
+            : Camera(projection)
         {}
     };
 

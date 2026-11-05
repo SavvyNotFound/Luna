@@ -1,5 +1,5 @@
 #include <lunapch.h>
-#include "CameraController.h"
+#include "OrthoCameraController.h"
 
 #include "Luna/Core/Core.h"
 #include "Luna/Core/Input.h"

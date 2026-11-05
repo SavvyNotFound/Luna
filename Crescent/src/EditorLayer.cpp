@@ -31,6 +31,14 @@ namespace Luna {
         Entity square = m_ActiveScene->CreateEntity("Our Glorious Square done thru ECS (EnTT)");
         square.AddComponent<SpriteRendererComponent>(glm::vec4{0.0f, 1.0f, 0.2f, 1.0f});
         m_SquareEntity = square;
+
+        m_CameraEntity = m_ActiveScene->CreateEntity("Camera Entity - 1");
+        m_CameraEntity.AddComponent<CameraComponent>(glm::ortho(-16.0f, 16.0f, -9.0f, 9.0f, -1.0f, 1.0f));
+
+        m_CameraEntity2 = m_ActiveScene->CreateEntity("Camera Entity - 2");
+        m_CameraEntity2.AddComponent<CameraComponent>(glm::ortho(-4.0f, 4.0f, -3.0f, 3.0f, -1.0f, 1.0f)).Primary = false;
+        auto transform = m_CameraEntity2.GetComponent<TransformComponent>().Transform;
+        transform = glm::translate(transform, glm::vec3(2.0f, 1.0f, 1.0f));
     }
 
     void EditorLayer::OnDetach()
@@ -55,15 +63,9 @@ namespace Luna {
         RenderCommand::SetClearColor({0.15f, 0.15f, 0.15f, 1.00f});
         RenderCommand::Clear();
 
-        {
-            LUNA_PROFILE_SCOPE("Renderer Draw");
-            Renderer2D::BeginScene(m_CameraController.GetCamera());
+        // Update Scene
+        m_ActiveScene->OnUpdate(ts);
 
-            // Update Scene
-            m_ActiveScene->OnUpdate(ts);
-
-            Renderer2D::EndScene();
-        }
         m_Framebuffer->Unbind();
     }
 
@@ -172,6 +174,20 @@ namespace Luna {
 
                 auto& squareColor = m_SquareEntity.GetComponent<SpriteRendererComponent>().Color;
                 ImGui::ColorEdit4("Quad Color", glm::value_ptr(squareColor));
+                ImGui::Separator();
+            }
+
+            {
+                {
+                    ImGui::DragFloat3("Transform: ", glm::value_ptr(m_CameraEntity.GetComponent<TransformComponent>().Transform[3]), 0.1f);
+                }
+
+                ImGui::Separator();
+                if (ImGui::Checkbox("Switch Camera", &m_PrimaryCamera))
+                {
+                    m_CameraEntity.GetComponent<CameraComponent>().Primary = m_PrimaryCamera;
+                    m_CameraEntity2.GetComponent<CameraComponent>().Primary = !m_PrimaryCamera;
+                }
                 ImGui::Separator();
             }
 

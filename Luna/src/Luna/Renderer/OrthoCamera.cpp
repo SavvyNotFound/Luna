@@ -1,5 +1,5 @@
 #include <lunapch.h>
-#include "Camera.h"
+#include "OrthoCamera.h"
 
 namespace Luna {
 

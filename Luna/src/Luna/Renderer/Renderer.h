@@ -1,7 +1,7 @@
 #pragma once
 #include <lunapch.h>
 
-#include "Camera.h"
+#include "OrthoCamera.h"
 #include "Shader.h"
 #include "RenderCommand.h"
 

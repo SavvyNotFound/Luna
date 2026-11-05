@@ -1,7 +1,7 @@
 #pragma once
 #include <lunapch.h>
 
-#include "Luna/Renderer/Camera.h"
+#include "Luna/Renderer/OrthoCamera.h"
 
 #include "Luna/Core/Timestep.h"
 #include "Luna/Events/ApplicationEvent.h"

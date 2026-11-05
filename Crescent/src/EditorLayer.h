@@ -39,6 +39,11 @@ namespace Luna {
             Entity m_SquareEntity;
             float m_Rotation = 0.0f;
 
+            bool m_PrimaryCamera = true;
+
+            Entity m_CameraEntity;
+            Entity m_CameraEntity2;
+
             float m_FrameTime = 0.0f;
     };
 

@@ -128,6 +128,20 @@ namespace Luna {
         s_Data->TextureSlotIndex = 1;
     }
 
+    void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)
+    {
+        LUNA_PROFILE_FUNCTION();
+
+        glm::mat4 viewProj = camera.GetProjection() * glm::inverse(transform);
+
+        s_Data->ColorTextureShader->Bind();
+        s_Data->ColorTextureShader->SetMat4(viewProj, "u_ViewProjection");
+
+        s_Data->QuadIndexCount = 0;
+        s_Data->QuadVertexBufferPtr = s_Data->QuadVertexBufferBase;
+        s_Data->TextureSlotIndex = 1;
+    }
+
     void Renderer2D::EndScene()
     {
         LUNA_PROFILE_FUNCTION();
