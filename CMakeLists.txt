@@ -17,9 +17,13 @@ endif()
 
 # Platforms Defines
 if (WIN32)
-    add_compile_definitions(LUNA_PLATFORM_WINDOWS)
+    add_compile_definitions(
+        LUNA_PLATFORM_WINDOWS
+    )
 elseif (LINUX)
-    add_compile_definitions(LUNA_PLATFORM_LINUX)
+    add_compile_definitions(
+        LUNA_PLATFORM_LINUX
+    )
 elseif (APPLE)
     add_compile_definitions(LUNA_PLATFORM_MAC)
 endif()
@@ -27,13 +31,22 @@ endif()
 if(MSVC)
     # SPDLOG
     add_compile_options(/utf-8)
+
+    # MSVC BS
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    add_compile_options(
+        $<$<CONFIG:Debug>:/Zi>
+        $<$<CONFIG:Release>:/O2>
+        $<$<CONFIG:Dist>:/O2>
+    )
+else()
+    add_compile_options(
+        $<$<CONFIG:Debug>:-g>
+        $<$<CONFIG:Release>:-O2>
+        $<$<CONFIG:Dist>:-O3>
+    )
 endif()
 
-add_compile_options(
-    $<$<CONFIG:Debug>:-g>
-    $<$<CONFIG:Release>:-O2>
-    $<$<CONFIG:Dist>:-O3>
-)
 add_compile_definitions(LUNA_FORCE_X11)
 
 add_subdirectory(Luna)

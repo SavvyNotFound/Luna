@@ -1,6 +1,7 @@
 /bin/
 /compile_commands.json
 /build/
+/build-windows/
 /.vscode/
 /.idea/
 /.cache/
