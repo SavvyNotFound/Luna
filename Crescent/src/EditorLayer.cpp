@@ -45,10 +45,8 @@ namespace Luna {
             public:
                 void OnCreate()
                 {
-                    m_Tag = GetComponent<TagComponent>();
-                    m_CC = GetComponent<CameraComponent>();
-
-                    LUNA_TRACE("Attached camera controller script to {0}", m_Tag.Tag);
+                    auto& tag = GetComponent<TagComponent>();
+                    LUNA_TRACE("Attached camera controller script to {0}", tag.Tag);
                 }
 
                 void OnUpdate(Timestep ts)
@@ -86,9 +84,6 @@ namespace Luna {
                     camera.SetOrthographicSize(orthoSize);
                     return true;  
                 }
-            private:
-                TagComponent m_Tag;
-                CameraComponent m_CC;
         };
 
         m_CameraEntity.AddComponent<NativeScriptComponent>().Bind<CameraController>();

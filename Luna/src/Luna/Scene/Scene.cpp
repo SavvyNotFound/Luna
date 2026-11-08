@@ -34,16 +34,15 @@ namespace Luna {
         {
             m_Registry.group<NativeScriptComponent>().each([=, this](auto entity, auto& nsc)
             {
+                // TODO: Move to Scene::OnPlay
                 if (!nsc.Instance)
                 {
-                    nsc.InstantiateFunction();
+                    nsc.Instance = nsc.InstantiateScript();
                     nsc.Instance->m_Entity = Entity{ entity, this };
-                    if (nsc.OnCreateFunction)
-                        nsc.OnCreateFunction(nsc.Instance);
+                    nsc.Instance->OnCreate();
                 }
 
-                if (nsc.OnUpdateFunction)
-                    nsc.OnUpdateFunction(nsc.Instance, ts);
+                nsc.Instance->OnUpdate(ts);
             });
         }
 
@@ -88,15 +87,12 @@ namespace Luna {
         {
             if (!nsc.Instance)
             {
-                nsc.InstantiateFunction();
+                nsc.InstantiateScript();
                 nsc.Instance->m_Entity = Entity{ entity, this };
-
-                if (nsc.OnCreateFunction)
-                    nsc.OnCreateFunction(nsc.Instance);
+                nsc.Instance->OnCreate();
             }
 
-            if (nsc.OnEventFunction)
-                nsc.OnEventFunction(nsc.Instance, e);
+            nsc.Instance->OnEvent(e);
         });
     }
 
