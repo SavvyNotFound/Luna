@@ -21,7 +21,7 @@ namespace Luna {
             }
 
             template<typename T>
-            T& GetComponent()
+            [[nodiscard]] T& GetComponent()
             {
                 LUNA_CORE_ASSERT(HasComponent<T>(), "Entity does not have component!");
                 return m_ParentScene->m_Registry.get<T>(m_EntityHandle);

@@ -43,6 +43,8 @@
 #include <Luna/Scene/Scene.h>
 #include <Luna/Scene/Entity.h>
 #include <Luna/Scene/Component.h>
+#include "Luna/Scene/SceneCamera.h"
+#include "Luna/Scene/ScriptableEntity.h"
 // --Scene --
 
 // -- Logging --

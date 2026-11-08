@@ -30,6 +30,22 @@ namespace Luna {
 
     void Scene::OnUpdate(Timestep ts)
     {
+        // Update Script
+        {
+            m_Registry.group<NativeScriptComponent>().each([=, this](auto entity, auto& nsc)
+            {
+                if (!nsc.Instance)
+                {
+                    nsc.InstantiateFunction();
+                    nsc.Instance->m_Entity = Entity{ entity, this };
+                    if (nsc.OnCreateFunction)
+                        nsc.OnCreateFunction(nsc.Instance);
+                }
+
+                if (nsc.OnUpdateFunction)
+                    nsc.OnUpdateFunction(nsc.Instance, ts);
+            });
+        }
 
         // Render 2D Sprites
         Camera* mainCamera = nullptr;
@@ -46,7 +62,6 @@ namespace Luna {
                     cameraTransform = &transform.Transform;
                     break;
                 }
-
             }
         }
 
@@ -64,6 +79,42 @@ namespace Luna {
             }
 
             Renderer2D::EndScene();
+        }
+    }
+
+    void Scene::OnEvent(Event& e)
+    {
+        m_Registry.group<NativeScriptComponent>().each([&e, this](auto entity, auto& nsc)
+        {
+            if (!nsc.Instance)
+            {
+                nsc.InstantiateFunction();
+                nsc.Instance->m_Entity = Entity{ entity, this };
+
+                if (nsc.OnCreateFunction)
+                    nsc.OnCreateFunction(nsc.Instance);
+            }
+
+            if (nsc.OnEventFunction)
+                nsc.OnEventFunction(nsc.Instance, e);
+        });
+    }
+
+    void Scene::OnViewportResize(uint32_t width, uint32_t height)
+    {
+        m_ViewportWidth = width;
+        m_ViewportHeight = height;
+
+        // Resize non fixed aspect ratio cams
+
+        auto group = m_Registry.group<CameraComponent>();
+        for (auto entity : group)
+        {
+            auto& cameraComponent = group.get<CameraComponent>(entity);
+            if (!cameraComponent.FixedAspectRatio)
+            {
+                cameraComponent.Camera.SetViewportSize(width, height);
+            }
         }
     }
 }

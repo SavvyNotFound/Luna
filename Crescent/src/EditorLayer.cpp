@@ -33,12 +33,65 @@ namespace Luna {
         m_SquareEntity = square;
 
         m_CameraEntity = m_ActiveScene->CreateEntity("Camera Entity - 1");
-        m_CameraEntity.AddComponent<CameraComponent>(glm::ortho(-16.0f, 16.0f, -9.0f, 9.0f, -1.0f, 1.0f));
+        m_CameraEntity.AddComponent<CameraComponent>();
 
         m_CameraEntity2 = m_ActiveScene->CreateEntity("Camera Entity - 2");
-        m_CameraEntity2.AddComponent<CameraComponent>(glm::ortho(-4.0f, 4.0f, -3.0f, 3.0f, -1.0f, 1.0f)).Primary = false;
-        auto transform = m_CameraEntity2.GetComponent<TransformComponent>().Transform;
-        transform = glm::translate(transform, glm::vec3(2.0f, 1.0f, 1.0f));
+        m_CameraEntity2.AddComponent<CameraComponent>().Primary = false;
+        auto& cameraEntity2 = m_CameraEntity2.GetComponent<CameraComponent>();
+        cameraEntity2.Camera.SetOrthographicSize(2.0f);
+
+        class CameraController : public ScriptableEntity
+        {
+            public:
+                void OnCreate()
+                {
+                    m_Tag = GetComponent<TagComponent>();
+                    m_CC = GetComponent<CameraComponent>();
+
+                    LUNA_TRACE("Attached camera controller script to {0}", m_Tag.Tag);
+                }
+
+                void OnUpdate(Timestep ts)
+                {
+                    auto& transform = GetComponent<TransformComponent>().Transform;
+                    auto& cc = GetComponent<CameraComponent>().Camera;
+                    float speed = 5.0f;
+
+                    if (Input::IsKeyPressed(LunaKey_W))
+                        transform[3][1] += speed * ts;
+                    if (Input::IsKeyPressed(LunaKey_S))
+                        transform[3][1] -= speed * ts;
+                    if (Input::IsKeyPressed(LunaKey_D))
+                        transform[3][0] += speed * ts;
+                    if (Input::IsKeyPressed(LunaKey_A))
+                        transform[3][0] -= speed * ts;
+                }
+
+                void OnEvent(Event &e)
+                {
+                    EventDispatcher dispatcher(e);
+                    dispatcher.Dispatch<MouseScrolledEvent>(LUNA_BIND_EVENT_FN(CameraController::Zoom));
+                }
+
+                void OnDestroy()
+                {
+                }
+            private:
+                bool Zoom(MouseScrolledEvent& e)
+                {
+                    auto& camera = GetComponent<CameraComponent>().Camera;
+                    float orthoSize = camera.GetOrthographicSize() - e.GetYOffset();
+                    orthoSize = orthoSize >= 1 ? orthoSize : 1;
+
+                    camera.SetOrthographicSize(orthoSize);
+                    return true;  
+                }
+            private:
+                TagComponent m_Tag;
+                CameraComponent m_CC;
+        };
+
+        m_CameraEntity.AddComponent<NativeScriptComponent>().Bind<CameraController>();
     }
 
     void EditorLayer::OnDetach()
@@ -54,6 +107,7 @@ namespace Luna {
 
         // -- Update --
         m_FrameTime = ts;
+
         if (m_ViewportFocused)
             m_CameraController.OnUpdate(ts);
 
@@ -143,6 +197,8 @@ namespace Luna {
             m_Framebuffer->Resize((uint32_t)sceneViewerPanelSize.x, (uint32_t)sceneViewerPanelSize.y);
             m_ViewportSize = {sceneViewerPanelSize.x, sceneViewerPanelSize.y};
             m_CameraController.Resize(m_ViewportSize.x, m_ViewportSize.y);
+
+            m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
         }
 
         uint32_t sceneID = m_Framebuffer->GetColorAttachmentRendererID();
@@ -178,17 +234,22 @@ namespace Luna {
             }
 
             {
-                {
-                    ImGui::DragFloat3("Transform: ", glm::value_ptr(m_CameraEntity.GetComponent<TransformComponent>().Transform[3]), 0.1f);
-                }
 
-                ImGui::Separator();
-                if (ImGui::Checkbox("Switch Camera", &m_PrimaryCamera))
+                if (ImGui::Checkbox("Primary Camera", &m_PrimaryCamera))
                 {
                     m_CameraEntity.GetComponent<CameraComponent>().Primary = m_PrimaryCamera;
                     m_CameraEntity2.GetComponent<CameraComponent>().Primary = !m_PrimaryCamera;
                 }
+
                 ImGui::Separator();
+
+                {
+                    ImGui::DragFloat2("Transform: ", glm::value_ptr(m_CameraEntity2.GetComponent<TransformComponent>().Transform[3]), 0.1f);
+                    auto& camera = m_CameraEntity2.GetComponent<CameraComponent>().Camera;
+                    float orthoSize = camera.GetOrthographicSize();
+                    if (ImGui::DragFloat("Second Camera Ortho Size", &orthoSize, 0.1f))
+                        camera.SetOrthographicSize(orthoSize);
+                }
             }
 
             ImGui::End();
@@ -198,6 +259,7 @@ namespace Luna {
     void EditorLayer::OnEvent(Event& event)
     {
         m_CameraController.OnEvent(event);
+        m_ActiveScene->OnEvent(event);
 
         EventDispatcher dispatcher(event);
         dispatcher.Dispatch<KeyPressedEvent>(LUNA_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
