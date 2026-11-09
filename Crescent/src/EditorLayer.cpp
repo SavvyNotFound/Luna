@@ -56,10 +56,11 @@ namespace Luna {
                 void OnUpdate(Timestep ts)
                 {
                     auto& transform = GetComponent<TransformComponent>().Transform;
-                    auto& cc = GetComponent<CameraComponent>().Camera;
+                    auto& camera = GetComponent<CameraComponent>().Camera;
+                    m_Primary = GetComponent<CameraComponent>().Primary;
                     float speed = 5.0f;
 
-                    if (s_ViewportFocused)
+                    if (s_ViewportFocused && m_Primary)
                     {
                         if (Input::IsKeyPressed(LunaKey_W))
                             transform[3][1] += speed * ts;
@@ -75,7 +76,7 @@ namespace Luna {
                 void OnEvent(Event &e)
                 {
                     EventDispatcher dispatcher(e);
-                    if (s_ViewportFocused && s_ViewportHovered)
+                    if (s_ViewportFocused && s_ViewportHovered && m_Primary)
                         dispatcher.Dispatch<MouseScrolledEvent>(LUNA_BIND_EVENT_FN(CameraController::Zoom));
                 }
 
@@ -92,6 +93,8 @@ namespace Luna {
                     camera.SetOrthographicSize(orthoSize);
                     return true;  
                 }
+            private:
+                bool m_Primary = false;
         };
 
         m_CameraEntity.AddComponent<NativeScriptComponent>().Bind<CameraController>();
@@ -209,7 +212,7 @@ namespace Luna {
         {
             Renderer2D::Statistics stats = Renderer2D::GetStats();
 
-            ImGui::Begin("Luna-Engine");
+            ImGui::Begin("Render Statistics");
             ImGui::SeparatorText("Info");
             ImGui::Text("Frame time: %f s\n", m_FrameTime);
             ImGui::Text("FPS: %f", (1.0f / m_FrameTime));
@@ -220,36 +223,6 @@ namespace Luna {
             ImGui::End();
 
             m_SceneHierarchyPanel.OnImGuiRender();
-
-            ImGui::Begin("Random");
-            if (m_SquareEntity)
-            {
-                ImGui::Separator();
-                std::string tag = m_SquareEntity.GetComponent<TagComponent>().Tag;
-                ImGui::Text("%s", tag.c_str());
-
-                auto& squareColor = m_SquareEntity.GetComponent<SpriteRendererComponent>().Color;
-                ImGui::ColorEdit4("Quad Color", glm::value_ptr(squareColor));
-                ImGui::Separator();
-            }
-            {
-                if (ImGui::Checkbox("Primary Camera", &m_PrimaryCamera))
-                {
-                    m_CameraEntity.GetComponent<CameraComponent>().Primary = m_PrimaryCamera;
-                    m_CameraEntity2.GetComponent<CameraComponent>().Primary = !m_PrimaryCamera;
-                }
-
-                ImGui::Separator();
-
-                {
-                    ImGui::DragFloat2("Transform: ", glm::value_ptr(m_CameraEntity2.GetComponent<TransformComponent>().Transform[3]), 0.1f);
-                    auto& camera = m_CameraEntity2.GetComponent<CameraComponent>().Camera;
-                    float orthoSize = camera.GetOrthographicSize();
-                    if (ImGui::DragFloat("Second Camera Ortho Size", &orthoSize, 0.1f))
-                        camera.SetOrthographicSize(orthoSize);
-                }
-            }
-            ImGui::End();
         }
     }
 
