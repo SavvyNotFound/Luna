@@ -12,8 +12,7 @@ namespace Luna {
     class Scene
     {
         public:
-
-            Scene();
+            Scene(const std::string& name = "Scene");
             ~Scene();
 
             Entity CreateEntity(const std::string& name = std::string());
@@ -22,11 +21,15 @@ namespace Luna {
             void OnEvent(Event& e);
 
             void OnViewportResize(uint32_t width, uint32_t height);
+
+            std::string GetName() const { return m_Name; }
         private:
             entt::registry m_Registry;
+            std::string m_Name;
             uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
 
             friend class Entity;
+            friend class SceneHierarchyPanel;
     };
 
 }

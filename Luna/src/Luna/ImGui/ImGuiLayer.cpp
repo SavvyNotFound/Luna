@@ -50,17 +50,10 @@ namespace Luna {
         strcpy(fontConfig.Name, "JetBrainsMono-Regular");
         ImFont* myFont = io.Fonts->AddFontFromMemoryCompressedBase85TTF(
             JetBrainsMono_Regular,
-            16.0f,
+            18.0f,
             &fontConfig
         );
         io.FontDefault = myFont;
-
-        strcpy(fontConfig.Name, "JetBrainsMono-Bold");
-        io.Fonts->AddFontFromMemoryCompressedBase85TTF(
-            JetBrainsMono_Bold,
-            16.0f,
-            &fontConfig
-        );
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Luna.h>
+#include "Panels/SceneHierarchyPanel.h"
 
 namespace Luna {
 
@@ -35,6 +36,10 @@ namespace Luna {
             Ref<SubTexture2D> m_StairLTR;
 
             Ref<Scene> m_ActiveScene;
+
+            // Panels Begin
+            SceneHierarchyPanel m_SceneHierarchyPanel;
+            // Panels End
 
             Entity m_SquareEntity;
             float m_Rotation = 0.0f;

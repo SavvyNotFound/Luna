@@ -30,9 +30,9 @@ namespace Luna {
         fbSpec.Height = 720;
         m_Framebuffer = Framebuffer::Create(fbSpec);
 
-        m_ActiveScene = CreateRef<Scene>();
+        m_ActiveScene = CreateRef<Scene>("Primary Scene");
 
-        Entity square = m_ActiveScene->CreateEntity("Our Glorious Square done thru ECS (EnTT)");
+        Entity square = m_ActiveScene->CreateEntity("Square");
         square.AddComponent<SpriteRendererComponent>(glm::vec4{0.0f, 1.0f, 0.2f, 1.0f});
         m_SquareEntity = square;
 
@@ -95,6 +95,8 @@ namespace Luna {
         };
 
         m_CameraEntity.AddComponent<NativeScriptComponent>().Bind<CameraController>();
+
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
 
     void EditorLayer::OnDetach()
@@ -217,8 +219,9 @@ namespace Luna {
             ImGui::Text("Index count: %u", stats.GetTotalIndexCount());
             ImGui::End();
 
-            ImGui::Begin("Inspector");
+            m_SceneHierarchyPanel.OnImGuiRender();
 
+            ImGui::Begin("Random");
             if (m_SquareEntity)
             {
                 ImGui::Separator();
@@ -229,9 +232,7 @@ namespace Luna {
                 ImGui::ColorEdit4("Quad Color", glm::value_ptr(squareColor));
                 ImGui::Separator();
             }
-
             {
-
                 if (ImGui::Checkbox("Primary Camera", &m_PrimaryCamera))
                 {
                     m_CameraEntity.GetComponent<CameraComponent>().Primary = m_PrimaryCamera;
@@ -248,7 +249,6 @@ namespace Luna {
                         camera.SetOrthographicSize(orthoSize);
                 }
             }
-
             ImGui::End();
         }
     }
