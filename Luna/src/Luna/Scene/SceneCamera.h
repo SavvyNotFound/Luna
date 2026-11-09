@@ -12,13 +12,13 @@ namespace Luna {
             void SetOrthographic(float size, float nearClip, float farClip);
             void SetViewportSize(uint32_t width, uint32_t height);
 
-            void SetOrthographicSize(float size) { m_OrthographicSize = size; RecalculateProjection(); }
+            void SetOrthographicSize(float size) { m_OrthographicSize = size; RecalculateProjection(); };
             float GetOrthographicSize() const { return m_OrthographicSize; }
 
-            void SetOrthographicNear(float near) { m_OrthographicNear = near; RecalculateProjection(); }
+            void SetOrthographicNear(float nearClip) { m_OrthographicNear = nearClip; RecalculateProjection(); };
             float GetOrthographicNear() const { return m_OrthographicNear; }
 
-            void SetOrthographicFar(float near) { m_OrthographicFar = near; RecalculateProjection(); }
+            void SetOrthographicFar(float nearClip) { m_OrthographicFar = nearClip; RecalculateProjection(); };
             float GetOrthographicFar() const { return m_OrthographicFar; }
         private:
             void RecalculateProjection();
