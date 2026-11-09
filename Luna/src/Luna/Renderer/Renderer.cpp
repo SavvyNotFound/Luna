@@ -15,6 +15,11 @@ namespace Luna {
         Renderer2D::Init();
     }
 
+    void Renderer::Shutdown()
+    {
+        Renderer2D::Shutdown();
+    }
+
     void Renderer::OnWindowResize(int width, int height)
     {
         RenderCommand::SetViewport(0, 0, width, height);

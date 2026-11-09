@@ -119,7 +119,10 @@ namespace Luna {
         }
 
         for (auto id : glShaderID)
+        {
             glDetachShader(program, id);
+            glDeleteShader(id);
+        }
 
         m_RendererID = program;
     }

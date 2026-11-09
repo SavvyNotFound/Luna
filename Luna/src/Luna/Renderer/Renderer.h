@@ -11,6 +11,7 @@ namespace Luna {
     {
         public:
             static void Init();
+            static void Shutdown();
             static void OnWindowResize(int width, int height);
 
             static void BeginScene(Camera& camera, const glm::mat4& transform); // TODO: Take all params

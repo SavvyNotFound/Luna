@@ -24,12 +24,15 @@ namespace Luna {
 
         Renderer::Init();
 
+        m_LastFrameTime = m_Window->GetTime();
+
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
     }
 
     Application::~Application()
     {
+        Renderer::Shutdown();
     }
 
     void Application::PushLayer(Layer* layer)

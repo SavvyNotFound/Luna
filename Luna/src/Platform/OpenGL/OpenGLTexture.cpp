@@ -80,7 +80,7 @@ namespace Luna {
 
         uint32_t bpp = m_DataFormat == GL_RGBA ? 4 : 3;
         LUNA_CORE_ASSERT(size == m_Width * m_Height * bpp, "Data must fill entire texture!");
-        glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Height, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
+        glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
     }
 
     OpenGLTexture2D::~OpenGLTexture2D()

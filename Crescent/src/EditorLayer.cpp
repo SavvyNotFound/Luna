@@ -100,8 +100,6 @@ namespace Luna {
     void EditorLayer::OnDetach()
     {
         LUNA_PROFILE_FUNCTION();
-
-        Renderer2D::Shutdown();
     }
 
     void EditorLayer::OnUpdate(Timestep ts)
@@ -270,9 +268,10 @@ namespace Luna {
         if (keycode == LunaKey_F11)
         {
             s_SceneViewFullScr = !s_SceneViewFullScr;
+            return true;
         }
 
-        return true;
+        return false;
     }
 
 }
