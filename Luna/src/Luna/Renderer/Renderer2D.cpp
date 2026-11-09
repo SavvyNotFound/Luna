@@ -116,18 +116,6 @@ namespace Luna {
         s_Data = nullptr;
     }
 
-    void Renderer2D::BeginScene(const CameraOrtho& camera)
-    {
-        LUNA_PROFILE_FUNCTION();
-
-        s_Data->ColorTextureShader->Bind();
-        s_Data->ColorTextureShader->SetMat4(camera.GetViewProjectionMat(), "u_ViewProjection");
-
-        s_Data->QuadIndexCount = 0;
-        s_Data->QuadVertexBufferPtr = s_Data->QuadVertexBufferBase;
-        s_Data->TextureSlotIndex = 1;
-    }
-
     void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)
     {
         LUNA_PROFILE_FUNCTION();

@@ -20,9 +20,9 @@ namespace Luna {
         RenderCommand::SetViewport(0, 0, width, height);
     }
 
-    void Renderer::BeginScene(CameraOrtho& camera)
+    void Renderer::BeginScene(Camera& camera, const glm::mat4& transform)
     {
-        m_SceneData->ViewProjectionMatrix = camera.GetViewProjectionMat();
+        m_SceneData->ViewProjectionMatrix = camera.GetProjection() * glm::inverse(transform);
     }
 
     void Renderer::EndScene()

@@ -4,10 +4,14 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+
 namespace Luna {
 
+    bool EditorLayer::s_SceneViewFullScr = false;
+    bool EditorLayer::s_ViewportFocused = false;
+    bool EditorLayer::s_ViewportHovered = false;
+
     EditorLayer::EditorLayer()
-        : m_CameraController(1280.0f / 720.0f)
     {
     }
 
@@ -55,20 +59,24 @@ namespace Luna {
                     auto& cc = GetComponent<CameraComponent>().Camera;
                     float speed = 5.0f;
 
-                    if (Input::IsKeyPressed(LunaKey_W))
-                        transform[3][1] += speed * ts;
-                    if (Input::IsKeyPressed(LunaKey_S))
-                        transform[3][1] -= speed * ts;
-                    if (Input::IsKeyPressed(LunaKey_D))
-                        transform[3][0] += speed * ts;
-                    if (Input::IsKeyPressed(LunaKey_A))
-                        transform[3][0] -= speed * ts;
+                    if (s_ViewportFocused)
+                    {
+                        if (Input::IsKeyPressed(LunaKey_W))
+                            transform[3][1] += speed * ts;
+                        if (Input::IsKeyPressed(LunaKey_S))
+                            transform[3][1] -= speed * ts;
+                        if (Input::IsKeyPressed(LunaKey_D))
+                            transform[3][0] += speed * ts;
+                        if (Input::IsKeyPressed(LunaKey_A))
+                            transform[3][0] -= speed * ts;
+                    }
                 }
 
                 void OnEvent(Event &e)
                 {
                     EventDispatcher dispatcher(e);
-                    dispatcher.Dispatch<MouseScrolledEvent>(LUNA_BIND_EVENT_FN(CameraController::Zoom));
+                    if (s_ViewportFocused && s_ViewportHovered)
+                        dispatcher.Dispatch<MouseScrolledEvent>(LUNA_BIND_EVENT_FN(CameraController::Zoom));
                 }
 
                 void OnDestroy()
@@ -102,9 +110,6 @@ namespace Luna {
 
         // -- Update --
         m_FrameTime = ts;
-
-        if (m_ViewportFocused)
-            m_CameraController.OnUpdate(ts);
 
         Renderer2D::ResetStats();
         // -- Render --
@@ -182,16 +187,15 @@ namespace Luna {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
         ImGui::Begin("Scene Viewport");
 
-        m_ViewportFocused = ImGui::IsWindowFocused();
-        m_ViewportHovered = ImGui::IsWindowHovered();
-        Application::Get().GetImGuiLayer()->BlockEvents(m_ViewportFocused && m_ViewportHovered);
+        s_ViewportFocused = ImGui::IsWindowFocused();
+        s_ViewportHovered = ImGui::IsWindowHovered();
+        Application::Get().GetImGuiLayer()->BlockEvents(s_ViewportFocused && s_ViewportHovered);
 
         ImVec2 sceneViewerPanelSize = ImGui::GetContentRegionAvail();
         if (m_ViewportSize != glm::vec2{sceneViewerPanelSize.x, sceneViewerPanelSize.y} && sceneViewerPanelSize.x > 0 && sceneViewerPanelSize.y > 0)
         {
             m_Framebuffer->Resize((uint32_t)sceneViewerPanelSize.x, (uint32_t)sceneViewerPanelSize.y);
             m_ViewportSize = {sceneViewerPanelSize.x, sceneViewerPanelSize.y};
-            m_CameraController.Resize(m_ViewportSize.x, m_ViewportSize.y);
 
             m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
         }
@@ -201,7 +205,7 @@ namespace Luna {
         ImGui::End();
         ImGui::PopStyleVar();
 
-        if (!SceneViewFullScr)
+        if (!s_SceneViewFullScr)
         {
             Renderer2D::Statistics stats = Renderer2D::GetStats();
 
@@ -253,7 +257,6 @@ namespace Luna {
 
     void EditorLayer::OnEvent(Event& event)
     {
-        m_CameraController.OnEvent(event);
         m_ActiveScene->OnEvent(event);
 
         EventDispatcher dispatcher(event);
@@ -266,7 +269,7 @@ namespace Luna {
 
         if (keycode == LunaKey_F11)
         {
-            SceneViewFullScr = !SceneViewFullScr;
+            s_SceneViewFullScr = !s_SceneViewFullScr;
         }
 
         return true;

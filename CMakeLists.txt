@@ -50,5 +50,4 @@ endif()
 add_compile_definitions(LUNA_FORCE_X11)
 
 add_subdirectory(Luna)
-add_subdirectory(Sandbox)
 add_subdirectory(Crescent)

@@ -1,7 +1,7 @@
 #pragma once
 #include <lunapch.h>
 
-#include "OrthoCamera.h"
+#include "Camera.h"
 #include "Shader.h"
 #include "RenderCommand.h"
 
@@ -13,7 +13,7 @@ namespace Luna {
             static void Init();
             static void OnWindowResize(int width, int height);
 
-            static void BeginScene(CameraOrtho& camera); // TODO: Take all params
+            static void BeginScene(Camera& camera, const glm::mat4& transform); // TODO: Take all params
             static void EndScene();
 
             static void Submit(const Ref<Shader> shader, const Ref<VertexArray>& vertexArray, const glm::mat4 transform = glm::mat4(1.0f));

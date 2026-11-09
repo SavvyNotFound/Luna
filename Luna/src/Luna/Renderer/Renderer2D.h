@@ -4,7 +4,6 @@
 #include "Luna/Renderer/Camera.h"
 #include "Luna/Renderer/Texture.h"
 #include "Luna/Renderer/SubTexture.h"
-#include "Luna/Renderer/OrthoCamera.h"
 
 namespace Luna {
 
@@ -16,7 +15,6 @@ namespace Luna {
             static void OnWindowResize(int width, int height);
 
             static void BeginScene(const Camera& camera, const glm::mat4& transform);
-            static void BeginScene(const CameraOrtho& camera); // TODO: Remove
             static void Flush();
             static void EndScene();
 

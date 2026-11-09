@@ -15,18 +15,18 @@ namespace Luna {
             virtual void OnUpdate(Timestep ts) override;
             virtual void OnImGuiRender() override;
             virtual void OnEvent(Event& event) override;
+        public:
+            static bool s_SceneViewFullScr;
+            static bool s_ViewportFocused;
+            static bool s_ViewportHovered;
         private:
             bool OnKeyPressed(KeyPressedEvent& e);
         private:
             Ref<Framebuffer> m_Framebuffer;
 
-            bool SceneViewFullScr = false;
-            bool m_ViewportFocused = false;
-            bool m_ViewportHovered = false;
             glm::vec2 m_ViewportSize = {1.0f, 1.0f};
 
             Ref<Shader> m_Shader;
-            CameraOrthoController m_CameraController;
 
             Ref<Texture2D> m_Texture;
             Ref<Texture2D> m_LunaLogo;

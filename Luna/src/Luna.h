@@ -34,8 +34,6 @@
 #include <Luna/Renderer/SubTexture.h>
 #include <Luna/Renderer/Framebuffer.h>
 #include <Luna/Renderer/VertexArray.h>
-#include <Luna/Renderer/OrthoCamera.h>
-#include <Luna/Renderer/OrthoCameraController.h>
 // -- Resources --
 // -- Rendering --
 
