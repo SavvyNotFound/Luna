@@ -18,7 +18,7 @@ namespace Luna {
             void SetOrthographicNear(float nearClip) { m_OrthographicNear = nearClip; RecalculateProjection(); };
             float GetOrthographicNear() const { return m_OrthographicNear; }
 
-            void SetOrthographicFar(float nearClip) { m_OrthographicFar = nearClip; RecalculateProjection(); };
+            void SetOrthographicFar(float farClip) { m_OrthographicFar = farClip; RecalculateProjection(); };
             float GetOrthographicFar() const { return m_OrthographicFar; }
         private:
             void RecalculateProjection();
