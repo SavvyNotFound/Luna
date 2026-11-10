@@ -34,6 +34,10 @@ namespace Luna {
 
         Entity square = m_ActiveScene->CreateEntity("Square");
         square.AddComponent<SpriteRendererComponent>(glm::vec4{0.0f, 1.0f, 0.2f, 1.0f});
+
+        Entity redSquare = m_ActiveScene->CreateEntity("Square");
+        redSquare.AddComponent<SpriteRendererComponent>(glm::vec4{1.0f, 0.0f, 0.2f, 1.0f});
+
         m_SquareEntity = square;
 
         m_CameraEntity = m_ActiveScene->CreateEntity("Camera Entity - 1");
@@ -62,21 +66,32 @@ namespace Luna {
 
                     if (s_ViewportFocused && m_Primary)
                     {
-                        if (Input::IsKeyPressed(LunaKey_W))
-                            transform[3][1] += speed * ts;
-                        if (Input::IsKeyPressed(LunaKey_S))
-                            transform[3][1] -= speed * ts;
-                        if (Input::IsKeyPressed(LunaKey_D))
-                            transform[3][0] += speed * ts;
-                        if (Input::IsKeyPressed(LunaKey_A))
-                            transform[3][0] -= speed * ts;
+                        if (camera.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
+                        {
+                            if (Input::IsKeyPressed(LunaKey_W))
+                                transform[3][1] += speed * ts;
+                            if (Input::IsKeyPressed(LunaKey_S))
+                                transform[3][1] -= speed * ts;
+                            if (Input::IsKeyPressed(LunaKey_D))
+                                transform[3][0] += speed * ts;
+                            if (Input::IsKeyPressed(LunaKey_A))
+                                transform[3][0] -= speed * ts;
+                        }
+                        else if (camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
+                        {
+                        }
+                        else
+                        {
+                            LUNA_ASSERT(false, "Invalid Camera Projection Type");
+                        }
                     }
                 }
 
                 void OnEvent(Event &e)
                 {
+                    auto& camera = GetComponent<CameraComponent>().Camera;
                     EventDispatcher dispatcher(e);
-                    if (s_ViewportFocused && s_ViewportHovered && m_Primary)
+                    if (s_ViewportFocused && s_ViewportHovered && m_Primary && camera.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
                         dispatcher.Dispatch<MouseScrolledEvent>(LUNA_BIND_EVENT_FN(CameraController::Zoom));
                 }
 

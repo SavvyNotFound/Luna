@@ -147,23 +147,67 @@ namespace Luna {
                 auto& primary = cc.Primary;
                 auto& fixedAspectRatio = cc.FixedAspectRatio;
 
-                ImGui::TextUnformatted("Ortho Size: ");
-                ImGui::SameLine();
-                float orthoSize = camera.GetOrthographicSize();
-                if (ImGui::InputFloat("##Ortho Size", &orthoSize))
-                    camera.SetOrthographicSize(orthoSize);
+                const char* projectionTypeStrings[] = { "Orthographic", "Perspective" };
+                const char* currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];
 
-                ImGui::TextUnformatted("Ortho Near: ");
-                ImGui::SameLine();
-                float orthoNear = camera.GetOrthographicNear();
-                if (ImGui::InputFloat("##Ortho Near", &orthoNear))
-                    camera.SetOrthographicNear(orthoNear);
+                if (ImGui::BeginCombo("Camera Type", currentProjectionTypeString))
+                {
+                    for (int i = 0; i < 2; i++)
+                    {
+                        bool isSelected = currentProjectionTypeString == projectionTypeStrings[i];
+                        if (ImGui::Selectable(projectionTypeStrings[i], isSelected))
+                        {
+                            currentProjectionTypeString = projectionTypeStrings[i];
+                            camera.SetProjectionType((SceneCamera::ProjectionType)i);
+                        }
 
-                ImGui::TextUnformatted("Ortho Far: ");
-                ImGui::SameLine();
-                float orthoFar = camera.GetOrthographicFar();
-                if (ImGui::InputFloat("##Ortho Far", &orthoFar))
-                    camera.SetOrthographicFar(orthoFar);
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+
+                if (camera.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
+                {
+                    ImGui::TextUnformatted("Size: ");
+                    ImGui::SameLine();
+                    float orthoSize = camera.GetOrthographicSize();
+                    if (ImGui::DragFloat("##Size", &orthoSize, 0.1f))
+                        camera.SetOrthographicSize(orthoSize);
+
+                    ImGui::TextUnformatted("Near: ");
+                    ImGui::SameLine();
+                    float orthoNear = camera.GetOrthographicNear();
+                    if (ImGui::DragFloat("##Near", &orthoNear, 0.1f))
+                        camera.SetOrthographicNear(orthoNear);
+
+                    ImGui::TextUnformatted("Far: ");
+                    ImGui::SameLine();
+                    float orthoFar = camera.GetOrthographicFar();
+                    if (ImGui::DragFloat("##Far", &orthoFar, 0.1f))
+                        camera.SetOrthographicFar(orthoFar);
+                }
+
+                if (camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
+                {
+                    ImGui::TextUnformatted("FOV: ");
+                    ImGui::SameLine();
+                    float perspectiveVerticalFOV = camera.GetPerspectiveVerticalFOV();
+                    if (ImGui::DragFloat("##FOV", &perspectiveVerticalFOV, 0.5f))
+                        camera.SetPerspectiveVerticalFOV(perspectiveVerticalFOV);
+
+                    ImGui::TextUnformatted("Near: ");
+                    ImGui::SameLine();
+                    float perspectiveNear = camera.GetPerspectiveNear();
+                    if (ImGui::DragFloat("##Near", &perspectiveNear, 0.1f))
+                        camera.SetPerspectiveNear(perspectiveNear);
+
+                    ImGui::TextUnformatted("Far: ");
+                    ImGui::SameLine();
+                    float perspectiveFar = camera.GetPerspectiveFar();
+                    if (ImGui::DragFloat("##Far", &perspectiveFar, 0.1f))
+                        camera.SetPerspectiveFar(perspectiveFar);
+                }
 
                 ImGui::Checkbox("Primary", &primary);
                 ImGui::Checkbox("Fixed Aspect Ratio", &fixedAspectRatio);

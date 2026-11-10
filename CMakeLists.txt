@@ -47,6 +47,7 @@ else()
     )
 endif()
 
+## Only Affects Linux
 add_compile_definitions(LUNA_FORCE_X11)
 
 add_subdirectory(Luna)
