@@ -59,7 +59,7 @@ namespace Luna {
 
                 void OnUpdate(Timestep ts)
                 {
-                    auto& transform = GetComponent<TransformComponent>().Transform;
+                    auto& translation = GetComponent<TransformComponent>().Translation;
                     auto& camera = GetComponent<CameraComponent>().Camera;
                     m_Primary = GetComponent<CameraComponent>().Primary;
                     float speed = 5.0f;
@@ -69,13 +69,13 @@ namespace Luna {
                         if (camera.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
                         {
                             if (Input::IsKeyPressed(LunaKey_W))
-                                transform[3][1] += speed * ts;
+                                translation[1] += speed * ts;
                             if (Input::IsKeyPressed(LunaKey_S))
-                                transform[3][1] -= speed * ts;
+                                translation[1] -= speed * ts;
                             if (Input::IsKeyPressed(LunaKey_D))
-                                transform[3][0] += speed * ts;
+                                translation[0] += speed * ts;
                             if (Input::IsKeyPressed(LunaKey_A))
-                                transform[3][0] -= speed * ts;
+                                translation[0] -= speed * ts;
                         }
                         else if (camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
                         {
@@ -227,7 +227,7 @@ namespace Luna {
         {
             Renderer2D::Statistics stats = Renderer2D::GetStats();
 
-            ImGui::Begin("Render Statistics");
+            ImGui::Begin("Render2D Stats");
             ImGui::SeparatorText("Info");
             ImGui::Text("Frame time: %f s\n", m_FrameTime);
             ImGui::Text("FPS: %f", (1.0f / m_FrameTime));
