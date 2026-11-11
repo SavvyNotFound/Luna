@@ -162,23 +162,3 @@ namespace Luna {
     {
     }
 }
-
-// Some Usage of entt
-
-// entt::entity entity1 = m_Registry.create();
-//
-// m_Registry.emplace<TransformComponent>(entity1, glm::mat4(1.0f));
-//
-// // must have every component defined components asked
-// // option: reg.any_of
-// // must have atleast one of the defined components asked
-// if (m_Registry.all_of<TransformComponent>(entity1))
-// {
-//     TransformComponent& tranform = m_Registry.get<TransformComponent>(entity1);
-//     tranform = glm::mat4(2.0f);
-// }
-//
-// m_Registry.remove<TransformComponent>(entity1);
-//
-// // Get every entity with transform component
-// auto view = m_Registry.view<TransformComponent>();

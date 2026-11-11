@@ -91,6 +91,7 @@ namespace Luna {
     void SceneHierarchyPanel::SetContext(const Ref<Scene>& context)
     {
         m_Context = context;
+        m_SelectionContext = {};
     }
 
     void SceneHierarchyPanel::OnImGuiRender()
@@ -120,6 +121,8 @@ namespace Luna {
         {
             if (ImGui::MenuItem("Create Empty Entity"))
                 m_Context->CreateEntity("Empty Entity");
+
+            ImGui::Separator();
 
             if (ImGui::MenuItem("Create Camera Entity"))
             {
@@ -361,7 +364,7 @@ namespace Luna {
 
         ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
 
-        if (ImGui::DragFloat("##Value", &value, dragSpeed, 0.0f, 1.0f, "%.3f"))
+        if (ImGui::DragFloat("##Value", &value, dragSpeed, 0.0f, 0.0f, "%.3f"))
             returnVal = true;
 
         ImGui::PopItemWidth();

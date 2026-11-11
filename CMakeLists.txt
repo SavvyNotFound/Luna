@@ -28,6 +28,19 @@ elseif (APPLE)
     add_compile_definitions(LUNA_PLATFORM_MAC)
 endif()
 
+set(LUNA_PLATFORM_WINDOWS OFF)
+set(LUNA_PLATFORM_LINUX OFF)
+set(LUNA_PLATFORM_MAC OFF)
+
+if(WIN32)
+    set(LUNA_PLATFORM_WINDOWS ON)
+elseif(UNIX AND NOT APPLE)
+    set(LUNA_PLATFORM_LINUX ON)
+elseif(APPLE)
+    set(LUNA_PLATFORM_MAC ON)
+endif()
+
+
 if(MSVC)
     # SPDLOG
     add_compile_options(/utf-8)

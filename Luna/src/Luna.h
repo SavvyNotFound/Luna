@@ -42,8 +42,13 @@
 #include <Luna/Scene/Entity.h>
 #include <Luna/Scene/Component.h>
 #include "Luna/Scene/SceneCamera.h"
+#include "Luna/Scene/SceneSerializer.h"
 #include "Luna/Scene/ScriptableEntity.h"
 // --Scene --
+
+// -- Utils --
+#include "Luna/Utils/PlatformUtils.h"
+// -- Utils --
 
 // -- Logging --
 // Bugs out without ostr sometimes

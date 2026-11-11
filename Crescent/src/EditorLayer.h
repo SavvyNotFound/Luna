@@ -21,6 +21,10 @@ namespace Luna {
             static bool s_ViewportFocused;
             static bool s_ViewportHovered;
         private:
+            void NewScene();
+            void OpenScene();
+            void SaveSceneAs();
+
             bool OnKeyPressed(KeyPressedEvent& e);
         private:
             Ref<Framebuffer> m_Framebuffer;

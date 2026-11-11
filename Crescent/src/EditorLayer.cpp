@@ -4,7 +4,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-
 namespace Luna {
 
     bool EditorLayer::s_SceneViewFullScr = false;
@@ -31,22 +30,8 @@ namespace Luna {
         m_Framebuffer = Framebuffer::Create(fbSpec);
 
         m_ActiveScene = CreateRef<Scene>("Primary Scene");
-
-        Entity square = m_ActiveScene->CreateEntity("Square");
-        square.AddComponent<SpriteRendererComponent>(glm::vec4{0.0f, 1.0f, 0.2f, 1.0f});
-
-        Entity redSquare = m_ActiveScene->CreateEntity("Square");
-        redSquare.AddComponent<SpriteRendererComponent>(glm::vec4{1.0f, 0.0f, 0.2f, 1.0f});
-
-        m_SquareEntity = square;
-
         m_CameraEntity = m_ActiveScene->CreateEntity("Camera Entity - 1");
         m_CameraEntity.AddComponent<CameraComponent>();
-
-        m_CameraEntity2 = m_ActiveScene->CreateEntity("Camera Entity - 2");
-        m_CameraEntity2.AddComponent<CameraComponent>().Primary = false;
-        auto& cameraEntity2 = m_CameraEntity2.GetComponent<CameraComponent>();
-        cameraEntity2.Camera.SetOrthographicSize(2.0f);
 
         class CameraController : public ScriptableEntity
         {
@@ -198,7 +183,32 @@ namespace Luna {
         {
             if (ImGui::BeginMenu("File"))
             {
-                if (ImGui::MenuItem("Exit")) Application::Get().Close();
+                if (ImGui::MenuItem("Exit"))
+                {
+                    Application::Get().Close();
+                }
+
+                ImGui::Separator();
+
+                if (ImGui::MenuItem("New", "Ctrl+N"))
+                {
+                    NewScene();
+                }
+
+                ImGui::Separator();
+
+                if (ImGui::MenuItem("Open...", "Ctrl+O"))
+                {
+                    OpenScene();
+                }
+
+                ImGui::Separator();
+
+                if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S"))
+                {
+                    SaveSceneAs();
+                }
+
                 ImGui::EndMenu();
             }
             ImGui::EndMenuBar();
@@ -253,6 +263,37 @@ namespace Luna {
         dispatcher.Dispatch<KeyPressedEvent>(LUNA_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
     }
 
+    void EditorLayer::NewScene()
+    {
+        m_ActiveScene = CreateRef<Scene>();
+        m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+    }
+
+    void EditorLayer::OpenScene()
+    {
+        std::string path = FileDialogs::OpenFile("Luna Scene (*.luna)\0*.luna\0");
+        if (!path.empty())
+        {
+            m_ActiveScene = CreateRef<Scene>();
+            m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+            m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+            SceneSerializer serializer(m_ActiveScene);
+            serializer.Deserialize(path);
+        }
+    }
+
+    void EditorLayer::SaveSceneAs()
+    {
+        std::string path = FileDialogs::SaveFile("Luna Scene (*.luna)\0*.luna\0");
+        if (!path.empty())
+        {
+            SceneSerializer serializer(m_ActiveScene);
+            serializer.Serialize(path);
+        }
+    }
+
     bool EditorLayer::OnKeyPressed(KeyPressedEvent& e)
     {
         const auto& keycode = e.GetKeyCode();
@@ -262,6 +303,35 @@ namespace Luna {
             s_SceneViewFullScr = !s_SceneViewFullScr;
             return true;
         }
+
+        // Shortcuts
+        if (e.GetRepeatCount() > 0)
+            return false;
+
+        bool control = Input::IsKeyPressed(LunaKey_RControl) || Input::IsKeyPressed(LunaKey_LControl);
+        bool shift = Input::IsKeyPressed(LunaKey_RShift) || Input::IsKeyPressed(LunaKey_LShift); 
+        switch (keycode)
+        {
+            case LunaKey_N:
+            {
+                if (control)
+                    NewScene();
+                break;
+            }
+            case LunaKey_O:
+            {
+                if (control)
+                    OpenScene();
+                break;
+            }
+            case LunaKey_S:
+            {
+                if (control && shift)
+                    SaveSceneAs();
+                break;
+            }
+        }
+
 
         return false;
     }
