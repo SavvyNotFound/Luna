@@ -5,11 +5,12 @@
 
 namespace Luna {
 
+    ApplicationSpecification g_Spec{ .Name = "Crescent", .Width = 1600, .Height = 900 };
     class Crescent : public Application
     {
         public:
             Crescent()
-                : Application("Crescent")
+                : Application(g_Spec)
             {
                 PushLayer(new EditorLayer());
             }
@@ -17,6 +18,8 @@ namespace Luna {
             ~Crescent()
             {
             }
+        private:
+
     };
 
     Application* CreateApplication()

@@ -132,7 +132,7 @@ namespace Luna {
         Renderer2D::ResetStats();
         // -- Render --
         m_Framebuffer->Bind();
-        RenderCommand::SetClearColor({0.15f, 0.15f, 0.15f, 1.00f});
+        RenderCommand::SetClearColor({0.090f, 0.094f, 0.102f, 1.00f});
         RenderCommand::Clear();
 
         // Update Scene
@@ -184,11 +184,15 @@ namespace Luna {
 
         // DockSpace
         ImGuiIO& io = ImGui::GetIO();
+        ImGuiStyle& style = ImGui::GetStyle();
+        float minimumDefaultWidth = style.WindowMinSize.x;
+        style.WindowMinSize.x = 450.0f;
         if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
         {
             ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
         }
+        style.WindowMinSize.x = minimumDefaultWidth;
 
         if (ImGui::BeginMenuBar())
         {

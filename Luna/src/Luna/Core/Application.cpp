@@ -12,6 +12,29 @@ namespace Luna {
 
     Application* Application::s_Instance = nullptr;
 
+    Application::Application(const ApplicationSpecification spec)
+        : m_Name(spec.Name)
+    {
+        LUNA_PROFILE_FUNCTION();
+        LUNA_CORE_ASSERT(!s_Instance, "Application already exists");
+        s_Instance = this;
+
+        WindowProps props;
+        props.Title = spec.Name;
+        props.Width = spec.Width;
+        props.Height = spec.Height;
+
+        m_Window = Window::Create(props);
+        m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
+
+        Renderer::Init();
+
+        m_LastFrameTime = m_Window->GetTime();
+
+        m_ImGuiLayer = new ImGuiLayer();
+        PushOverlay(m_ImGuiLayer);
+    }
+
     Application::Application(const std::string& name)
         : m_Name(name)
     {

@@ -6,19 +6,82 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+static int s_ColumnWidth = 140;
+
 namespace Luna {
 
     class ExampleScript : public ScriptableEntity
     {
         public:
-                void OnCreate()
-                {
-                    LUNA_ASSERT("Attached example script to {0}", GetComponent<TagComponent>().Tag);
-                }
+            void OnCreate()
+            {
+                LUNA_TRACE("Attached example script to {0}", GetComponent<TagComponent>().Tag);
+            }
         private:
     };
 
-    static void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f);
+    static void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = s_ColumnWidth);
+    static void DrawColor4Picker(const std::string& label, glm::vec4& color, float resetValue = 1.0f, float columnWidth = s_ColumnWidth);
+    static bool DrawFloatControl(const std::string& label, float& value, float dragSpeed = 1.0f, float resetValue = 0.0f, float columnWidth = s_ColumnWidth);
+    static void DrawCheckbox(const std::string& label, bool& value, float columnWidth = s_ColumnWidth);
+
+    template<typename T, typename UIFunction>
+    static void DrawComponent(const std::string& label, Entity entity, bool enableRemoving, UIFunction func)
+    {
+        const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlap;
+
+        if (entity.HasComponent<T>())
+        {
+            auto& component = entity.GetComponent<T>();
+
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            ImVec2 contentRegion = ImGui::GetContentRegionAvail();
+            auto boldFont = ImGui::GetIO().Fonts->Fonts[0];
+
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
+            ImGui::Separator();
+            ImGui::PushFont(boldFont);
+            bool opened = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), flags, label.c_str());
+            ImGui::PopFont();
+            ImGui::PopStyleVar();
+            float lineHeight = GImGui->Font->LegacySize + GImGui->Style.FramePadding.y * 2.0f;
+            if (enableRemoving)
+            {
+                ImGui::SameLine(contentRegion.x - lineHeight * 0.5f);
+                if (ImGui::Button("+", ImVec2{ lineHeight, lineHeight }))
+                {
+                    ImGui::OpenPopup("ComponentSettings");
+                }
+            }
+
+            bool removeComponent = false;
+            if (enableRemoving)
+            {
+                if (ImGui::BeginPopup("ComponentSettings"))
+                {
+                    if (ImGui::MenuItem("Remove component"))
+                    {
+                        removeComponent = true;
+                    }
+                    ImGui::EndPopup();
+                }
+            }
+            if (opened)
+            {
+                // actual thing to render inside
+                func(component);
+                ImGui::TreePop();
+            }
+
+            if (removeComponent)
+                entity.RemoveComponent<T>();
+
+            ImGui::Spacing();
+            ImGui::Spacing();
+        }
+    }
 
     SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
     {
@@ -73,32 +136,6 @@ namespace Luna {
         if (m_SelectionContext)
         {
             DrawComponents(m_SelectionContext);
-
-            if (ImGui::Button("Add Component"))
-                ImGui::OpenPopup("AddComponent");
-
-            if (ImGui::BeginPopup("AddComponent"))
-            {
-                if (ImGui::MenuItem("Camera"))
-                {
-                    m_SelectionContext.AddComponent<CameraComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-
-                if (ImGui::MenuItem("Sprite Renderer"))
-                {
-                    m_SelectionContext.AddComponent<SpriteRendererComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-
-                if (ImGui::MenuItem("Native Script"))
-                {
-                    m_SelectionContext.AddComponent<NativeScriptComponent>().Bind<ExampleScript>();
-                    ImGui::CloseCurrentPopup();
-                }
-
-                ImGui::EndPopup();
-            }
         }
         ImGui::End();
     }
@@ -140,258 +177,306 @@ namespace Luna {
 
     void SceneHierarchyPanel::DrawComponents(Entity entity)
     {
-        const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlap;
-
-        const ImVec4 bg_color_light  = ImVec4(0.118f, 0.118f, 0.141f, 1.00f);
-        ImGui::PushStyleColor(ImGuiCol_Header, bg_color_light);
-
-        if (entity.HasComponent<TagComponent>())
+        auto& tag = entity.GetComponent<TagComponent>().Tag;
+        char buffer[256];
+        memset(buffer, 0, sizeof(buffer));
+        strcpy(buffer, tag.c_str());
+        if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
         {
-            ImGui::Spacing();
-            ImGui::Spacing();
-            auto& tag = entity.GetComponent<TagComponent>().Tag;
+            tag = std::string(buffer);
+        }
 
-            char buffer[256];
-            memset(buffer, 0, sizeof(buffer));
-            strcpy(buffer, tag.c_str());
-            ImGui::PushFont(nullptr, 22.0f);
-            ImGui::TextUnformatted("Tag: ");
-            ImGui::PopFont();
+        {
             ImGui::SameLine();
-            if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
+            ImGui::PushItemWidth(-1);
+
+            if (ImGui::Button("Add Component"))
+                ImGui::OpenPopup("AddComponent");
+
+            if (ImGui::BeginPopup("AddComponent"))
             {
-                tag = std::string(buffer);
-            }
-            ImGui::Spacing();
-            ImGui::Spacing();
-        }
-
-        if (entity.HasComponent<TransformComponent>())
-        {
-            ImGui::Spacing();
-            ImGui::Spacing();
-
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
-            ImGui::PushFont(nullptr, 22.0f);
-            bool opened = ImGui::TreeNodeEx("Tranform Component", flags);
-            ImGui::PopFont();
-            ImGui::PopStyleVar();
-
-            if (opened)
-            {
-                auto& tc = entity.GetComponent<TransformComponent>();
-
-                // ImGui::DragFloat3("Translation", glm::value_ptr(tc.Translation), 0.1f);
-                // ImGui::DragFloat3("Rotation", glm::value_ptr(tc.Rotation), 0.1f);
-                // ImGui::DragFloat3("Scale", glm::value_ptr(tc.Scale), 0.1f);
-
-                DrawVec3Control("Translation", tc.Translation);
-                glm::vec3 rt = glm::degrees(tc.Rotation);
-                DrawVec3Control("Rotation", rt);
-                tc.Rotation = glm::radians(rt);
-                DrawVec3Control("Scale", tc.Scale, 1.0f);
-
-                ImGui::TreePop();
-            }
-
-            ImGui::Spacing();
-            ImGui::Spacing();
-        }
-
-        if (entity.HasComponent<CameraComponent>())
-        {
-            ImGui::Spacing();
-            ImGui::Spacing();
-
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
-            ImGui::PushFont(nullptr, 22.0f);
-            bool opened = ImGui::TreeNodeEx("Camera Component", flags);
-            ImGui::SameLine(ImGui::GetWindowWidth() - 50.0f);
-            if (ImGui::Button("+", ImVec2{ 20, 20 }))
-            {
-                ImGui::OpenPopup("ComponentSettings");
-            }
-            ImGui::PopFont();
-            ImGui::PopStyleVar();
-
-            bool removeComponent = false;
-            if (ImGui::BeginPopup("ComponentSettings"))
-            {
-                if (ImGui::MenuItem("Remove component"))
-                {
-                    removeComponent = true;
-                }
-
-                ImGui::EndPopup();
-            }
-
-            if (opened)
-            {
-                auto& cc = entity.GetComponent<CameraComponent>();
-                auto& camera = cc.Camera;
-                auto& primary = cc.Primary;
-                auto& fixedAspectRatio = cc.FixedAspectRatio;
-
-                const char* projectionTypeStrings[] = { "Orthographic", "Perspective" };
-                const char* currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];
-
-                if (ImGui::BeginCombo("Camera Type", currentProjectionTypeString))
-                {
-                    for (int i = 0; i < 2; i++)
+                if (!m_SelectionContext.HasComponent<CameraComponent>())
+                    if (ImGui::MenuItem("Camera"))
                     {
-                        bool isSelected = currentProjectionTypeString == projectionTypeStrings[i];
-                        if (ImGui::Selectable(projectionTypeStrings[i], isSelected))
-                        {
-                            currentProjectionTypeString = projectionTypeStrings[i];
-                            camera.SetProjectionType((SceneCamera::ProjectionType)i);
-                        }
-
-                        if (isSelected)
-                            ImGui::SetItemDefaultFocus();
+                        m_SelectionContext.AddComponent<CameraComponent>();
+                        ImGui::CloseCurrentPopup();
                     }
-                    ImGui::EndCombo();
-                }
 
-                if (camera.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
-                {
-                    ImGui::TextUnformatted("Size: ");
-                    ImGui::SameLine();
-                    float orthoSize = camera.GetOrthographicSize();
-                    if (ImGui::DragFloat("##Size", &orthoSize, 0.1f))
-                        camera.SetOrthographicSize(orthoSize);
+                if (!m_SelectionContext.HasComponent<SpriteRendererComponent>())
+                    if (ImGui::MenuItem("Sprite Renderer"))
+                    {
+                        m_SelectionContext.AddComponent<SpriteRendererComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
 
-                    ImGui::TextUnformatted("Near: ");
-                    ImGui::SameLine();
-                    float orthoNear = camera.GetOrthographicNear();
-                    if (ImGui::DragFloat("##Near", &orthoNear, 0.1f))
-                        camera.SetOrthographicNear(orthoNear);
+                if (!m_SelectionContext.HasComponent<NativeScriptComponent>())
+                    if (ImGui::MenuItem("Native Script"))
+                    {
+                        m_SelectionContext.AddComponent<NativeScriptComponent>().Bind<ExampleScript>();
+                        ImGui::CloseCurrentPopup();
+                    }
 
-                    ImGui::TextUnformatted("Far: ");
-                    ImGui::SameLine();
-                    float orthoFar = camera.GetOrthographicFar();
-                    if (ImGui::DragFloat("##Far", &orthoFar, 0.1f))
-                        camera.SetOrthographicFar(orthoFar);
-                }
-
-                if (camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
-                {
-                    ImGui::TextUnformatted("FOV: ");
-                    ImGui::SameLine();
-                    float perspectiveVerticalFOV = camera.GetPerspectiveVerticalFOV();
-                    if (ImGui::DragFloat("##FOV", &perspectiveVerticalFOV, 0.5f))
-                        camera.SetPerspectiveVerticalFOV(perspectiveVerticalFOV);
-
-                    ImGui::TextUnformatted("Near: ");
-                    ImGui::SameLine();
-                    float perspectiveNear = camera.GetPerspectiveNear();
-                    if (ImGui::DragFloat("##Near", &perspectiveNear, 0.1f))
-                        camera.SetPerspectiveNear(perspectiveNear);
-
-                    ImGui::TextUnformatted("Far: ");
-                    ImGui::SameLine();
-                    float perspectiveFar = camera.GetPerspectiveFar();
-                    if (ImGui::DragFloat("##Far", &perspectiveFar, 0.1f))
-                        camera.SetPerspectiveFar(perspectiveFar);
-                }
-
-                ImGui::Checkbox("Primary", &primary);
-                ImGui::Checkbox("Fixed Aspect Ratio", &fixedAspectRatio);
-
-                ImGui::TreePop();
-            }
-
-            if (removeComponent)
-                entity.RemoveComponent<CameraComponent>();                
-
-            ImGui::Spacing();
-            ImGui::Spacing();
-        }
-
-        if (entity.HasComponent<SpriteRendererComponent>())
-        {
-            ImGui::Spacing();
-            ImGui::Spacing();
-
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
-            ImGui::PushFont(nullptr, 22.0f);
-            bool opened = ImGui::TreeNodeEx("Sprite Renderer Component", flags);
-            ImGui::SameLine(ImGui::GetWindowWidth() - 50.0f);
-            if (ImGui::Button("+", ImVec2{ 20, 20 }))
-            {
-                ImGui::OpenPopup("ComponentSettings");
-            }
-            ImGui::PopFont();
-            ImGui::PopStyleVar();
-
-            bool removeComponent = false;
-            if (ImGui::BeginPopup("ComponentSettings"))
-            {
-                if (ImGui::MenuItem("Remove component"))
-                {
-                    removeComponent = true;
-                }
                 ImGui::EndPopup();
             }
-
-            if (opened)
-            {
-                auto& src = entity.GetComponent<SpriteRendererComponent>().Color;
-                ImGui::ColorEdit4("Color", glm::value_ptr(src));
-
-                ImGui::TreePop();
-            }
-
-            if (removeComponent)
-                entity.RemoveComponent<SpriteRendererComponent>();
-
-            ImGui::Spacing();
-            ImGui::Spacing();
         }
 
-        if (entity.HasComponent<NativeScriptComponent>())
+        DrawComponent<TransformComponent>("Transform", entity, false, [](auto& component)
         {
-            ImGui::Spacing();
-            ImGui::Spacing();
+                DrawVec3Control("Translation", component.Translation);
+                glm::vec3 rt = glm::degrees(component.Rotation);
+                DrawVec3Control("Rotation", rt);
+                component.Rotation = glm::radians(rt);
+                DrawVec3Control("Scale", component.Scale, 1.0f);
+        });
 
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
-            ImGui::PushFont(nullptr, 22.0f);
-            bool opened = ImGui::TreeNodeEx("Native Script Component", flags);
-            ImGui::SameLine(ImGui::GetWindowWidth() - 50.0f);
-            if (ImGui::Button("+", ImVec2{ 20, 20 }))
-            {
-                ImGui::OpenPopup("ComponentSettings");
-            }
+        DrawComponent<CameraComponent>("Camera", entity, true, [](auto& component)
+        {
+            auto& camera = component.Camera;
+            auto& primary = component.Primary;
+            auto& fixedAspectRatio = component.FixedAspectRatio;
+
+            const char* projectionTypeStrings[] = { "Orthographic", "Perspective" };
+            const char* currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];
+
+            auto boldFont = ImGui::GetIO().Fonts->Fonts[0];
+            ImGui::Columns(2);
+
+            ImGui::SetColumnWidth(0, s_ColumnWidth);
+            ImGui::PushFont(boldFont);
+            ImGui::Text("Type");
             ImGui::PopFont();
-            ImGui::PopStyleVar();
+            ImGui::NextColumn();
+            ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
 
-            bool removeComponent = false;
-            if (ImGui::BeginPopup("ComponentSettings"))
+            if (ImGui::BeginCombo("##proj-type", currentProjectionTypeString))
             {
-                if (ImGui::MenuItem("Remove component"))
+                for (int i = 0; i < 2; i++)
                 {
-                    removeComponent = true;
+                    bool isSelected = currentProjectionTypeString == projectionTypeStrings[i];
+                    if (ImGui::Selectable(projectionTypeStrings[i], isSelected))
+                    {
+                        currentProjectionTypeString = projectionTypeStrings[i];
+                        camera.SetProjectionType((SceneCamera::ProjectionType)i);
+                    }
+
+                    if (isSelected)
+                        ImGui::SetItemDefaultFocus();
                 }
-                ImGui::EndPopup();
+                ImGui::EndCombo();
             }
+            ImGui::PopItemWidth();
 
-            if (opened)
+            ImGui::Columns(1);
+            if (camera.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
             {
+                float orthoSize = camera.GetOrthographicSize();
+                if (DrawFloatControl("Size", orthoSize, 0.1f, 10.0f))
+                    camera.SetOrthographicSize(orthoSize);
 
-                ImGui::TreePop();
+                float orthoNear = camera.GetOrthographicNear();
+                if (DrawFloatControl("Near", orthoNear, 0.1f, -1.0f))
+                    camera.SetOrthographicNear(orthoNear);
+
+                float orthoFar = camera.GetOrthographicFar();
+                if (DrawFloatControl("Far", orthoFar, 0.1f, 1.0f))
+                    camera.SetOrthographicFar(orthoFar);
             }
 
-            if (removeComponent)
-                entity.RemoveComponent<NativeScriptComponent>();
+            if (camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
+            {
+                float perspectiveVerticalFOV = camera.GetPerspectiveVerticalFOV();
+                if (DrawFloatControl("FOV", perspectiveVerticalFOV, 0.5f, 45.0f))
+                    camera.SetPerspectiveVerticalFOV(perspectiveVerticalFOV);
 
-            ImGui::Spacing();
-            ImGui::Spacing();
+                float perspectiveNear = camera.GetPerspectiveNear();
+                if (DrawFloatControl("Near", perspectiveNear, 0.1f, 0.001f))
+                    camera.SetPerspectiveNear(perspectiveNear);
+
+                float perspectiveFar = camera.GetPerspectiveFar();
+                if (DrawFloatControl("Far", perspectiveFar, 0.1f, 10000.0f))
+                    camera.SetPerspectiveFar(perspectiveFar);
+            }
+
+            DrawCheckbox("Primary", primary);
+            DrawCheckbox("Fixed Aspect Ratio", fixedAspectRatio);
+        });
+
+        DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, true, [](auto& component)
+        {
+            DrawColor4Picker("Color: ", component.Color);
+        });
+
+        DrawComponent<NativeScriptComponent>("Native Script", entity, true, [](auto& component)
+        {
+            ImGui::Text("Nothing here, the script there, no impl tho :(");
+        });
+    }
+
+    static void DrawCheckbox(const std::string& label, bool& value, float columnWidth)
+    {
+        bool returnVal = false;
+
+        ImGui::PushID(label.c_str());
+
+        ImGui::Columns(2);
+
+        ImGui::SetColumnWidth(0, columnWidth);
+        ImGui::Text("%s", label.c_str());
+
+        float lineHeight = GImGui->Font->LegacySize + GImGui->Style.FramePadding.y * 2.0f;
+
+        ImGui::NextColumn();
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+        ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
+
+        ImGui::Checkbox("##value", &value);
+
+        ImGui::PopItemWidth();
+
+        ImGui::PopStyleVar();
+        ImGui::Columns(1);
+
+        ImGui::PopID();
+    }
+
+    static bool DrawFloatControl(const std::string& label, float& value, float dragSpeed, float resetValue, float columnWidth)
+    {
+        bool returnVal = false;
+        ImGuiIO& io = ImGui::GetIO();
+
+        ImGui::PushID(label.c_str());
+
+        ImGui::Columns(2);
+
+        ImGui::SetColumnWidth(0, columnWidth);
+        ImGui::Text("%s", label.c_str());
+
+        float lineHeight = GImGui->Font->LegacySize + GImGui->Style.FramePadding.y * 2.0f;
+
+        ImGui::NextColumn();
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+        ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
+
+        if (ImGui::DragFloat("##Value", &value, dragSpeed, 0.0f, 1.0f, "%.3f"))
+            returnVal = true;
+
+        ImGui::PopItemWidth();
+
+        ImGui::PopStyleVar();
+        ImGui::Columns(1);
+
+        ImGui::PopID();
+
+        return returnVal;
+    }
+
+    static void DrawColor4Picker(const std::string& label, glm::vec4& color, float resetValue, float columnWidth)
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        auto boldFont = io.Fonts->Fonts[0];
+
+        ImGui::PushID(label.c_str());
+
+        ImGui::Columns(2);
+        ImGui::SetColumnWidth(0, columnWidth);
+
+        float lineHeight = GImGui->Font->LegacySize + GImGui->Style.FramePadding.y * 2.0f;
+        ImVec2 buttonSize = { lineHeight + 1, lineHeight + 1 };
+
+        ImVec4 btnCol = ImVec4{color.r, color.g, color.b, color.a};
+        ImGui::PushStyleColor(ImGuiCol_Button, btnCol);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,btnCol);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, btnCol);
+        if (ImGui::Button("##picker", buttonSize))
+            ImGui::OpenPopup("##picker");
+
+        if (ImGui::BeginPopup("##picker"))
+        {
+            ImGui::ColorPicker4("##color-picker", glm::value_ptr(color));
+            ImGui::EndPopup();
         }
+        ImGui::PopStyleColor(3);
 
-        ImGui::PopStyleColor();
+        ImGui::SameLine();
+
+        ImGui::Text("%s", label.c_str());
+
+        ImGui::NextColumn();
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+        ImGui::PushMultiItemsWidths(4, ImGui::CalcItemWidth());
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+        ImGui::PushFont(boldFont);
+        if (ImGui::Button("R", buttonSize))
+            color.r = resetValue;
+        ImGui::PopFont();
+        ImGui::PopStyleColor(3);
+
+        ImGui::SameLine();
+        ImGui::DragFloat("##R", &color.r, 0.01f, 0.0f, 1.0f, "%.3f");
+        ImGui::PopItemWidth();
+        ImGui::SameLine();
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.3f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.3f, 1.0f });
+        ImGui::PushFont(boldFont);
+        if (ImGui::Button("G", buttonSize))
+            color.g = resetValue;
+        ImGui::PopFont();
+        ImGui::PopStyleColor(3);
+
+        ImGui::SameLine();
+        ImGui::DragFloat("##G", &color.g, 0.01f, 0.0f, 1.0f, "%.3f");
+        ImGui::PopItemWidth();
+        ImGui::SameLine();
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+        ImGui::PushFont(boldFont);
+        if (ImGui::Button("B", buttonSize))
+            color.b = resetValue;
+        ImGui::PopFont();
+        ImGui::PopStyleColor(3);
+
+        ImGui::SameLine();
+        ImGui::DragFloat("##B", &color.b, 0.01f, 0.0f, 1.0f, "%.3f");
+        ImGui::PopItemWidth();
+        ImGui::SameLine();
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.8f, 0.8f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.9f, 0.9f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.8f, 0.8f, 1.0f });
+        ImGui::PushFont(boldFont);
+        if (ImGui::Button("A", buttonSize))
+            color.a = resetValue;
+        ImGui::PopFont();
+        ImGui::PopStyleColor(3);
+
+        ImGui::SameLine();
+        ImGui::DragFloat("##A", &color.a, 0.01f, 0.0f, 1.0f, "%.3f");
+        ImGui::PopItemWidth();
+
+        ImGui::PopStyleVar();
+        ImGui::Columns(1);
+
+        ImGui::PopID();
     }
 
     static void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue, float columnWidth)
     {
+        ImGuiIO& io = ImGui::GetIO();
+        auto boldFont = io.Fonts->Fonts[0];
+
         ImGui::PushID(label.c_str());
 
         ImGui::Columns(2);
@@ -410,8 +495,10 @@ namespace Luna {
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+        ImGui::PushFont(boldFont);
         if (ImGui::Button("X", buttonSize))
             values.x = resetValue;
+        ImGui::PopFont();
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
@@ -422,8 +509,10 @@ namespace Luna {
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.3f, 1.0f });
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.3f, 1.0f });
+        ImGui::PushFont(boldFont);
         if (ImGui::Button("Y", buttonSize))
             values.y = resetValue;
+        ImGui::PopFont();
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
@@ -434,8 +523,10 @@ namespace Luna {
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+        ImGui::PushFont(boldFont);
         if (ImGui::Button("Z", buttonSize))
             values.z = resetValue;
+        ImGui::PopFont();
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();

@@ -10,9 +10,16 @@
 
 namespace Luna {
 
+    struct ApplicationSpecification
+    {
+        std::string Name;
+        uint32_t Width, Height;
+    };
+
     class Application
     {
         public:
+            Application(const ApplicationSpecification spec);
             Application(const std::string& name = "Luna Application");
             virtual ~Application();
 
