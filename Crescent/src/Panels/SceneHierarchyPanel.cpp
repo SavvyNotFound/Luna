@@ -387,6 +387,10 @@ namespace Luna {
         float lineHeight = GImGui->Font->LegacySize + GImGui->Style.FramePadding.y * 2.0f;
         ImVec2 buttonSize = { lineHeight + 1, lineHeight + 1 };
 
+        ImGui::Text("%s", label.c_str());
+
+        ImGui::SameLine();
+
         ImVec4 btnCol = ImVec4{color.r, color.g, color.b, color.a};
         ImGui::PushStyleColor(ImGuiCol_Button, btnCol);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered,btnCol);
@@ -400,10 +404,6 @@ namespace Luna {
             ImGui::EndPopup();
         }
         ImGui::PopStyleColor(3);
-
-        ImGui::SameLine();
-
-        ImGui::Text("%s", label.c_str());
 
         ImGui::NextColumn();
 

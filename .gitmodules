@@ -13,3 +13,6 @@
 [submodule "Luna/vendor/glm"]
 	path = Luna/vendor/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "Luna/vendor/yaml-cpp"]
+	path = Luna/vendor/yaml-cpp
+	url = https://github.com/SavvyNotFound/yaml-cpp.git
