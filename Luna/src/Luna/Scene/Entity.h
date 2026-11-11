@@ -17,7 +17,9 @@ namespace Luna {
             T& AddComponent(Args&&... args)
             {
                 LUNA_CORE_ASSERT(!HasComponent<T>(), "Entity already has component!");
-                return m_ParentScene->m_Registry.emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
+                T& component = m_ParentScene->m_Registry.emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
+                m_ParentScene->OnComponentAdded<T>(*this, component);
+                return component;
             }
 
             template<typename T>
@@ -40,7 +42,14 @@ namespace Luna {
                 m_ParentScene->m_Registry.remove<T>(m_EntityHandle);
             }
 
-            operator bool() const { return m_EntityHandle != entt::null; }
+            operator bool() const
+            {
+                if (m_ParentScene)
+                    return m_ParentScene->m_Registry.valid(m_EntityHandle);
+                else
+                    return m_EntityHandle != entt::null;
+            }
+            operator entt::entity() const { return m_EntityHandle; }
             operator uint32_t() const { return (uint32_t)m_EntityHandle; }
 
             bool operator==(const Entity& other) const
@@ -53,7 +62,7 @@ namespace Luna {
                 return !(*this == other);
             }
         private:
-            entt::entity m_EntityHandle = entt::null;
+            entt::entity m_EntityHandle{ entt::null };
             Scene* m_ParentScene = nullptr;
     };
 

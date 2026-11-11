@@ -8,6 +8,16 @@
 
 namespace Luna {
 
+    class ExampleScript : public ScriptableEntity
+    {
+        public:
+                void OnCreate()
+                {
+                    LUNA_ASSERT("Attached example script to {0}", GetComponent<TagComponent>().Tag);
+                }
+        private:
+    };
+
     static void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f);
 
     SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
@@ -34,12 +44,28 @@ namespace Luna {
         for (auto entityID : m_Context->m_Registry.storage<entt::entity>())
         {
             Entity entity{ entityID, m_Context.get() };
-            DrawEntityNode(entity);
+            if (entity)
+                DrawEntityNode(entity);
         }
         ImGui::Unindent();
 
         if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
             m_SelectionContext = {};
+
+        // Right Click Blank Space
+        if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_NoOpenOverItems))
+        {
+            if (ImGui::MenuItem("Create Empty Entity"))
+                m_Context->CreateEntity("Empty Entity");
+
+            if (ImGui::MenuItem("Create Camera Entity"))
+            {
+                auto entity = m_Context->CreateEntity("Camera");
+                entity.AddComponent<CameraComponent>();
+            }
+
+            ImGui::EndPopup();
+        }
 
         ImGui::End();
 
@@ -47,6 +73,32 @@ namespace Luna {
         if (m_SelectionContext)
         {
             DrawComponents(m_SelectionContext);
+
+            if (ImGui::Button("Add Component"))
+                ImGui::OpenPopup("AddComponent");
+
+            if (ImGui::BeginPopup("AddComponent"))
+            {
+                if (ImGui::MenuItem("Camera"))
+                {
+                    m_SelectionContext.AddComponent<CameraComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+
+                if (ImGui::MenuItem("Sprite Renderer"))
+                {
+                    m_SelectionContext.AddComponent<SpriteRendererComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+
+                if (ImGui::MenuItem("Native Script"))
+                {
+                    m_SelectionContext.AddComponent<NativeScriptComponent>().Bind<ExampleScript>();
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::EndPopup();
+            }
         }
         ImGui::End();
     }
@@ -55,22 +107,40 @@ namespace Luna {
     {
         auto& tag = entity.GetComponent<TagComponent>().Tag;
 
-        ImGuiTreeNodeFlags flags = ((m_SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+        ImGuiTreeNodeFlags flags = ((m_SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
         bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
         if (ImGui::IsItemClicked())
         {
             m_SelectionContext = entity;
         }
 
+        // Right Click Existing Entity
+        bool entityDeleted = false;
+        if (ImGui::BeginPopupContextItem())
+        {
+            if (ImGui::MenuItem("Delete Entity"))
+                entityDeleted = true;
+
+            ImGui::EndPopup();
+        }
+
         if (opened)
         {
             ImGui::TreePop();
+        }
+
+        if (entityDeleted)
+        {
+            if (m_SelectionContext == entity)
+                m_SelectionContext = {};
+
+            m_Context->DestroyEntity(entity);
         }
     }
 
     void SceneHierarchyPanel::DrawComponents(Entity entity)
     {
-        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen;
+        const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlap;
 
         const ImVec4 bg_color_light  = ImVec4(0.118f, 0.118f, 0.141f, 1.00f);
         ImGui::PushStyleColor(ImGuiCol_Header, bg_color_light);
@@ -101,9 +171,11 @@ namespace Luna {
             ImGui::Spacing();
             ImGui::Spacing();
 
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
             ImGui::PushFont(nullptr, 22.0f);
             bool opened = ImGui::TreeNodeEx("Tranform Component", flags);
             ImGui::PopFont();
+            ImGui::PopStyleVar();
 
             if (opened)
             {
@@ -131,9 +203,27 @@ namespace Luna {
             ImGui::Spacing();
             ImGui::Spacing();
 
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
             ImGui::PushFont(nullptr, 22.0f);
             bool opened = ImGui::TreeNodeEx("Camera Component", flags);
+            ImGui::SameLine(ImGui::GetWindowWidth() - 50.0f);
+            if (ImGui::Button("+", ImVec2{ 20, 20 }))
+            {
+                ImGui::OpenPopup("ComponentSettings");
+            }
             ImGui::PopFont();
+            ImGui::PopStyleVar();
+
+            bool removeComponent = false;
+            if (ImGui::BeginPopup("ComponentSettings"))
+            {
+                if (ImGui::MenuItem("Remove component"))
+                {
+                    removeComponent = true;
+                }
+
+                ImGui::EndPopup();
+            }
 
             if (opened)
             {
@@ -210,6 +300,9 @@ namespace Luna {
                 ImGui::TreePop();
             }
 
+            if (removeComponent)
+                entity.RemoveComponent<CameraComponent>();                
+
             ImGui::Spacing();
             ImGui::Spacing();
         }
@@ -219,9 +312,26 @@ namespace Luna {
             ImGui::Spacing();
             ImGui::Spacing();
 
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
             ImGui::PushFont(nullptr, 22.0f);
             bool opened = ImGui::TreeNodeEx("Sprite Renderer Component", flags);
+            ImGui::SameLine(ImGui::GetWindowWidth() - 50.0f);
+            if (ImGui::Button("+", ImVec2{ 20, 20 }))
+            {
+                ImGui::OpenPopup("ComponentSettings");
+            }
             ImGui::PopFont();
+            ImGui::PopStyleVar();
+
+            bool removeComponent = false;
+            if (ImGui::BeginPopup("ComponentSettings"))
+            {
+                if (ImGui::MenuItem("Remove component"))
+                {
+                    removeComponent = true;
+                }
+                ImGui::EndPopup();
+            }
 
             if (opened)
             {
@@ -230,6 +340,9 @@ namespace Luna {
 
                 ImGui::TreePop();
             }
+
+            if (removeComponent)
+                entity.RemoveComponent<SpriteRendererComponent>();
 
             ImGui::Spacing();
             ImGui::Spacing();
@@ -240,15 +353,35 @@ namespace Luna {
             ImGui::Spacing();
             ImGui::Spacing();
 
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
             ImGui::PushFont(nullptr, 22.0f);
             bool opened = ImGui::TreeNodeEx("Native Script Component", flags);
+            ImGui::SameLine(ImGui::GetWindowWidth() - 50.0f);
+            if (ImGui::Button("+", ImVec2{ 20, 20 }))
+            {
+                ImGui::OpenPopup("ComponentSettings");
+            }
             ImGui::PopFont();
+            ImGui::PopStyleVar();
+
+            bool removeComponent = false;
+            if (ImGui::BeginPopup("ComponentSettings"))
+            {
+                if (ImGui::MenuItem("Remove component"))
+                {
+                    removeComponent = true;
+                }
+                ImGui::EndPopup();
+            }
 
             if (opened)
             {
 
                 ImGui::TreePop();
             }
+
+            if (removeComponent)
+                entity.RemoveComponent<NativeScriptComponent>();
 
             ImGui::Spacing();
             ImGui::Spacing();
