@@ -123,6 +123,7 @@ namespace Luna {
 
         std::string sceneName = data["Scene"].as<std::string>();
         LUNA_CORE_TRACE("Deserializing scene '{0}'", sceneName);
+        m_Scene->SetName(sceneName);
         
         auto entities = data["Entities"];
         if (entities)
